@@ -10,6 +10,10 @@ const adminSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  createdAt: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Export the Admin model

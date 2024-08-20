@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import { Router } from "express";
+import multer from "multer";
 import {
   requestOTP,
   verifyOTPAndLogin,
@@ -12,34 +13,35 @@ import {
   Dashboard,
   Resellers,
   ProductPageView,
-  addUser
-} from '../controllers/admincontrollers.js'; 
-
-import { verifyToken } from '../middlewares/authMiddleware.js'; 
+  addUser,
+} from "../controllers/admincontrollers.js";
+import { verifyToken } from "../middlewares/authMiddleware.js";
+import { storage } from "../config/cloudinaryConfig.js"; // Moved Cloudinary config to a separate file
 
 const router = Router();
+const upload = multer({ storage });
 
 // Routes for OTP and login (no token required)
-router.post('/request-otp', requestOTP); // Step 1: Request OTP
-router.post('/verify-otp', verifyOTPAndLogin); // Step 2: Verify OTP and login
+router.post("/request-otp", requestOTP);
+router.post("/verify-otp", verifyOTPAndLogin);
 
 // Apply token verification middleware globally for the routes below
 router.use(verifyToken);
 
 // Routes that require token verification
-router.post('/logout', logout);
-router.get('/', Dashboard);
-router.get('/resellers', Resellers);
-router.get('/products', ProductPageView);
-router.get('/ordergen', xlsreportgen);
+router.post("/logout", logout);
+router.get("/", Dashboard);
+router.get("/resellers", Resellers);
+router.get("/products", ProductPageView);
+router.get("/ordergen", xlsreportgen);
 
-router.post('/user', addUser);
-router.post('/addproduct', addproduct);
+router.post("/adduser", addUser);
+router.post("/addproduct", upload.array("images", 5), addproduct);
 
-router.put('/editproduct', editproduct);
-router.put('/updateacc', updateacc);
+router.put("/editproduct/:id", editproduct);
+router.put("/updateacc", updateacc);
 
-router.delete('/deleteproduct', deleteproduct);
-router.delete('/deletereseller', deletereseller);
+router.delete("/deleteproduct/:id", deleteproduct);
+router.delete("/deletereseller/:id", deletereseller);
 
 export default router;
