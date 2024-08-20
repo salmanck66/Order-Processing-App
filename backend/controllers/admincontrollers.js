@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import sendOTP from "../helpers/adminhelper.js";
+import Admin from "../models/admin.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -31,27 +32,34 @@ export const requestOTP = async (req, res) => {
 };
 
 export const verifyOTPAndLogin = async (req, res) => {
-  const { phoneNumber, otp } = req.body;
-
-  try {
-    if (otpStorage[phoneNumber] !== parseInt(otp, 10)) {
-      return res.status(401).json({ message: "Invalid OTP." });
+    const { phoneNumber, otp } = req.body;
+  
+    try {
+      if (otpStorage[phoneNumber] !== parseInt(otp, 10)) {
+        return res.status(401).json({ message: "Invalid OTP." });
+      }
+  
+      delete otpStorage[phoneNumber];
+  
+      const accessToken = generateAccessToken({ phoneNumber });
+      const refreshToken = generateRefreshToken({ phoneNumber });
+  
+      // Store the refresh token in the database
+      await Admin.findOneAndUpdate(
+        {},
+        { refreshToken },
+        { upsert: true } // Create a new document if none exists
+      );
+  
+      res.cookie('access_token', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+      res.cookie('refresh_token', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+  
+      res.json({ message: "Login successful." });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server error" });
     }
-
-    delete otpStorage[phoneNumber];
-
-    const accessToken = generateAccessToken({ phoneNumber });
-    const refreshToken = generateRefreshToken({ phoneNumber });
-
-    res.cookie('access_token', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-    res.cookie('refresh_token', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-
-    res.json({ message: "Login successful." });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+  };
 
 
 // Logout
