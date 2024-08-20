@@ -40,3 +40,6 @@ export const editproduct = async (req, res) => {
 export const xlsreportgen = async (req, res) => {
     res.send('Admin edit product');
 };
+export const refreshToken = async (req, res) => {
+    res.send('Admin edit product');
+};
