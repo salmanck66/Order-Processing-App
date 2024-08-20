@@ -1,13 +1,12 @@
-import express from "express"
+import express from "express";
+import adminroutes from './routes/adminrouter.js';
+import userrouter from './routes/userrouter.js';
 
-const app = express()
+const app = express();
 
-app('/',(req,res)=>
-{
-    res.status(200).json({data:"welcome to server"})
-})
-app.listen(3000,()=>
-{
-    console.log("success");
-    
-})
+app.use('/user', userrouter);
+app.use('/admin', adminroutes);
+
+app.listen(3000, () => {
+    console.log("Server Is Ready");
+});
