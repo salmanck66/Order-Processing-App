@@ -5,7 +5,7 @@ import ProtectedRouts from "../admin/utils/ProtectedRouts";
 import Orders from "../admin/pages/Orders";
 import Account from "../admin/pages/Account";
 import Products from "../admin/pages/Products";
-import Login from "../admin/pages/Login";
+
 export const Routes = createBrowserRouter([
   {
     path: "/",
@@ -37,10 +37,6 @@ export const Routes = createBrowserRouter([
           },
         ],
       },
-      {
-        path: 'admin/login',
-        element: <Login/>
-      }
     ],
   },
 ]);
