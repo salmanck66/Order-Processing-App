@@ -9,24 +9,18 @@ dotenv.config();
 
 let otpStorage = {}; // Temporary in-memory storage for OTPs
 
-// Step 1: Verify phone number and send OTP
 export const requestOTP = async (req, res) => {
   const { phoneNumber } = req.body || "";
-  console.log(phoneNumber)
+  console.log(phoneNumber);
 
   try {
-    // Compare the input phone number with the one stored in the .env file
     if (phoneNumber !== process.env.ADMIN_PHONE_NUMBER) {
-      return res
-        .status(401)
-        .json({ message: "Phone number not recognized." });
+      return res.status(401).json({ message: "Phone number not recognized." });
     }
 
-    // Generate and store OTP
-    const otp = Math.floor(100000 + Math.random() * 900000); // Generate a 6-digit OTP
-    otpStorage[phoneNumber] = otp; // Store OTP temporarily
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    otpStorage[phoneNumber] = otp;
 
-    // Send OTP to the phone number
     await sendOTP(otp);
 
     res.json({ message: "OTP sent to your phone number." });
@@ -36,33 +30,29 @@ export const requestOTP = async (req, res) => {
   }
 };
 
-// Step 2: Verify OTP and generate tokens
 export const verifyOTPAndLogin = async (req, res) => {
   const { phoneNumber, otp } = req.body;
 
   try {
-    // Check if phone number and OTP match
     if (otpStorage[phoneNumber] !== parseInt(otp, 10)) {
       return res.status(401).json({ message: "Invalid OTP." });
     }
 
     delete otpStorage[phoneNumber];
 
-    // Generate the access and refresh tokens
     const accessToken = generateAccessToken({ phoneNumber });
     const refreshToken = generateRefreshToken({ phoneNumber });
 
-    // Set tokens in cookies
     res.cookie('access_token', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
     res.cookie('refresh_token', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
 
-    // Send a success response
     res.json({ message: "Login successful." });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // Logout
 export const logout = async (req, res) => {

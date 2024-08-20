@@ -5,7 +5,6 @@ import connectDB from "./db/dbconnect.js";
 import cors from 'cors'
 import cookieParser from 'cookie-parser';
 
-
 const app = express();
 app.use(cookieParser())
 app.use(cors({
