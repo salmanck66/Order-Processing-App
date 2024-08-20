@@ -1,27 +1,45 @@
 import { Router } from 'express';
-import {refreshToken,updateacc,logout,login,xlsreportgen,editproduct,deletereseller,deleteproduct, addproduct,Dashboard, Resellers,ProductPageView ,addUser} from '../controllers/admincontrollers.js'; // Import named exports
+import {
+  requestOTP,
+  verifyOTPAndLogin,
+  updateacc,
+  logout,
+  xlsreportgen,
+  editproduct,
+  deletereseller,
+  deleteproduct,
+  addproduct,
+  Dashboard,
+  Resellers,
+  ProductPageView,
+  addUser
+} from '../controllers/admincontrollers.js'; 
+
+import { verifyToken } from '../middlewares/authMiddleware.js'; 
+
 const router = Router();
 
-import { authenticateToken } from '../middlewares/authMiddleware.js';
+// Routes for OTP and login (no token required)
+router.post('/request-otp', requestOTP); // Step 1: Request OTP
+router.post('/verify-otp', verifyOTPAndLogin); // Step 2: Verify OTP and login
 
-router.post('/refresh-token', refreshToken);
-router.post('/login', login);
+// Apply token verification middleware globally for the routes below
+router.use(verifyToken);
+
+// Routes that require token verification
 router.post('/logout', logout);
-router.use(authenticateToken);
-
-//get routers
 router.get('/', Dashboard);
 router.get('/resellers', Resellers);
 router.get('/products', ProductPageView);
 router.get('/ordergen', xlsreportgen);
-//post routers
-router.post('/user', addUser);
 
-router.post('/addprouct', addproduct);
-//put router
+router.post('/user', addUser);
+router.post('/addproduct', addproduct);
+
 router.put('/editproduct', editproduct);
 router.put('/updateacc', updateacc);
-//delete router
-router.delete('/deleteprouct', deleteproduct);
+
+router.delete('/deleteproduct', deleteproduct);
 router.delete('/deletereseller', deletereseller);
+
 export default router;
