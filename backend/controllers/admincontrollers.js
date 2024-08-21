@@ -67,6 +67,45 @@ export const bulkUploadProducts = async (req, res) => {
   }
 };
 
+// verify-admin
+
+export const verifyAdmin = async (req, res) => {
+  const { accessToken, refreshToken } = req.cookies;
+
+  try {
+    // Check if accessToken exists
+    if (accessToken) {
+      return res.status(200).json({ message: 'Admin is authenticated' });
+    }
+
+    // If accessToken is not present, check refreshToken
+    const admin = await Admin.findOne({ token: refreshToken });
+
+    if (!admin) {
+      return res.status(401).json({ message: 'Invalid Refresh token' });
+    }
+    const phoneNumber = process.env.ADMIN_PHONE_NUMBER
+    // Generate new access token
+    const { newAccessToken } = await generateAccessToken({phoneNumber});
+
+    // Set cookies with new tokens
+    res.cookie('accessToken', newAccessToken, {
+      maxAge: 60 * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Set secure flag only in production
+      sameSite: 'Strict',
+    });
+    return res.status(200).json({
+      error: false,
+      accessToken,
+      refreshToken,
+      message: 'Admin   is Available ',
+    });
+  } catch (err) {
+    console.error('Error verifying Admin:', err);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
 // Verify OTP and Login
 export const verifyOTPAndLogin = async (req, res) => {
   const { phoneNumber, otp } = req.body;
@@ -90,13 +129,15 @@ export const verifyOTPAndLogin = async (req, res) => {
     );
 
     res.cookie("access_token", accessToken, {
+      maxAge: 1000 * 60 * 15,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
     res.cookie("refresh_token", refreshToken, {
+      maxAge: 1000 * 60 * 60 * 24 * 1000 ,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 1000 * 60 * 60 * 24 * 1000, // 1000 days in milliseconds
+      maxAge: 1000 * 60 * 60 * 24 * 1000, 
     });
     
     res.json({ message: "Login successful." });
@@ -115,6 +156,7 @@ export const logout = async (req, res) => {
 
 // Dashboard View
 export const Dashboard = async (req, res) => {
+  console.log('fasd');
   res.send("Admin Home");
 };
 
