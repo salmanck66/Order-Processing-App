@@ -6,7 +6,7 @@ const resellerSchema = new mongoose.Schema({
     required: true,
     trim: true, // Removes leading/trailing whitespace
   },
-  number: {
+  phone: {
     type: String,
     required: true,
     unique: true, // Ensures each number is unique
@@ -17,6 +17,10 @@ const resellerSchema = new mongoose.Schema({
     required: true,
     unique: true, // Ensures each email is unique
     match: [/.+\@.+\..+/, 'Please enter a valid email address'], // Validates email format
+  },
+  password: {
+    type: String,
+    required: true, // Ensure that the password is required
   },
   createdAt: {
     type: Date,

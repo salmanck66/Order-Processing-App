@@ -1,14 +1,14 @@
 import Admin from "../models/admin.js";
 import sendOTP from "../helpers/adminhelper.js";
 import Product from "../models/product.js";
-import ExcelJS from 'exceljs';
+import ExcelJS from "exceljs";
 import Reseller from "../models/reseller.js";
-import csv from 'csv-parser';
-import fs from 'fs';
-import path from 'path';
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
-import nodemailer from 'nodemailer';
+import csv from "csv-parser";
+import fs from "fs";
+import path from "path";
+import bcrypt from "bcrypt";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 
 import {
   generateAccessToken,
@@ -41,26 +41,26 @@ export const requestOTP = async (req, res) => {
 
 export const bulkUploadProducts = async (req, res) => {
   try {
-    const filePath = path.join(__dirname, '../uploads/', req.file.filename);
+    const filePath = path.join(__dirname, "../uploads/", req.file.filename);
     const products = [];
 
     fs.createReadStream(filePath)
       .pipe(csv())
-      .on('data', (row) => {
+      .on("data", (row) => {
         // Assuming row contains your product details
         products.push({
           name: row.name,
           edition: row.edition,
-          sizes: row.sizes.split(','), // Assuming sizes are comma-separated
+          sizes: row.sizes.split(","), // Assuming sizes are comma-separated
           // Add other necessary fields
         });
       })
-      .on('end', async () => {
+      .on("end", async () => {
         await Product.insertMany(products);
-        res.status(200).json({ message: 'Bulk upload successful!' });
+        res.status(200).json({ message: "Bulk upload successful!" });
       });
   } catch (error) {
-    res.status(500).json({ message: 'Bulk upload failed!', error });
+    res.status(500).json({ message: "Bulk upload failed!", error });
   }
 };
 
@@ -92,8 +92,9 @@ export const verifyOTPAndLogin = async (req, res) => {
     res.cookie("refresh_token", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60 * 24 * 1000, // 1000 days in milliseconds
     });
-
+    
     res.json({ message: "Login successful." });
   } catch (error) {
     console.error(error);
@@ -126,16 +127,18 @@ export const ProductPageView = async (req, res) => {
 // Add User
 export const addUser = async (req, res) => {
   try {
-    const { phone, email } = req.body;
+    const { phone, email, name } = req.body;
+    console.log(phone, email, name);
 
     // Generate a random password
-    const password = crypto.randomBytes(8).toString('hex'); // 16-character password
+    const password = crypto.randomBytes(8).toString("hex"); // 16-character password
 
     // Hash the password before saving it to the database
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create a new reseller
     const newReseller = new Reseller({
+      name,
       phone,
       email,
       password: hashedPassword, // Store the hashed password
@@ -145,7 +148,7 @@ export const addUser = async (req, res) => {
 
     // Set up Nodemailer to send the email
     const transporter = nodemailer.createTransport({
-      service: 'gmail', // You can use any email service provider
+      service: "gmail", // You can use any email service provider
       auth: {
         user: process.env.EMAIL, // Your email address
         pass: process.env.EMAIL_PASSWORD, // Your email password
@@ -155,8 +158,8 @@ export const addUser = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL, // Sender address
       to: email, // Recipient's email
-      subject: 'Your Account Credentials For Reselling With United Sports',
-      text: `Your account has been created. Please Login With Credentials 
+      subject: "Your Account Credentials For Reselling With United Sports",
+      text: `Your account has been created. Please login with the following credentials: 
              Phone Number: ${phone}
              Password: ${password}`,
     };
@@ -164,9 +167,9 @@ export const addUser = async (req, res) => {
     // Send the email
     await transporter.sendMail(mailOptions);
 
-    res.status(201).json({ message: 'Reseller created and email sent!' });
+    res.status(201).json({ message: "Reseller created and email sent!" });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating reseller', error });
+    res.status(500).json({ message: "Error creating reseller", error });
   }
 };
 
@@ -183,10 +186,12 @@ export const addproduct = async (req, res) => {
     }, {});
 
     // Process image files uploaded via Multer and Cloudinary
-    const images = req.files ? req.files.map((file) => ({
-      url: file.path,
-      public_id: file.filename,
-    })) : [];
+    const images = req.files
+      ? req.files.map((file) => ({
+          url: file.path,
+          public_id: file.filename,
+        }))
+      : [];
 
     const product = new Product({
       name,
@@ -204,7 +209,6 @@ export const addproduct = async (req, res) => {
     res.status(500).json({ message: "Failed to add product." });
   }
 };
-
 
 // Edit Product
 // Edit Product
@@ -236,19 +240,25 @@ export const editproduct = async (req, res) => {
       updatedData.images = images;
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, { new: true });
+    const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, {
+      new: true,
+    });
 
     if (!updatedProduct) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res.status(200).json({ message: "Product updated successfully", product: updatedProduct });
+    res
+      .status(200)
+      .json({
+        message: "Product updated successfully",
+        product: updatedProduct,
+      });
   } catch (error) {
     console.error("Error updating product:", error);
     res.status(500).json({ message: "Failed to update product." });
   }
 };
-
 
 // Delete Product
 // Delete Product
@@ -269,7 +279,6 @@ export const deleteproduct = async (req, res) => {
   }
 };
 
-
 // Delete Reseller
 // Delete Reseller
 export const deletereseller = async (req, res) => {
@@ -289,28 +298,27 @@ export const deletereseller = async (req, res) => {
   }
 };
 
-
 // Generate XLS Report
 export const xlsreportgen = async (req, res) => {
   try {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Orders Report');
+    const worksheet = workbook.addWorksheet("Orders Report");
 
     // Add columns
     worksheet.columns = [
-      { header: 'Order ID', key: 'orderId', width: 20 },
-      { header: 'Reseller', key: 'reseller', width: 20 },
-      { header: 'Product', key: 'product', width: 30 },
-      { header: 'Quantity', key: 'quantity', width: 10 },
-      { header: 'Price', key: 'price', width: 15 },
-      { header: 'Total', key: 'total', width: 15 },
+      { header: "Order ID", key: "orderId", width: 20 },
+      { header: "Reseller", key: "reseller", width: 20 },
+      { header: "Product", key: "product", width: 30 },
+      { header: "Quantity", key: "quantity", width: 10 },
+      { header: "Price", key: "price", width: 15 },
+      { header: "Total", key: "total", width: 15 },
     ];
 
     // Fetch orders data
     const orders = await Order.find({});
 
     // Add rows
-    orders.forEach(order => {
+    orders.forEach((order) => {
       worksheet.addRow({
         orderId: order._id,
         reseller: order.resellerName,
@@ -325,10 +333,13 @@ export const xlsreportgen = async (req, res) => {
     const buffer = await workbook.xlsx.writeBuffer();
 
     res.setHeader(
-      'Content-Disposition',
+      "Content-Disposition",
       'attachment; filename="orders_report.xlsx"'
     );
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
 
     res.send(buffer);
   } catch (error) {
@@ -353,10 +364,11 @@ export const updateacc = async (req, res) => {
       return res.status(404).json({ message: "Admin not found" });
     }
 
-    res.status(200).json({ message: "Account updated successfully", admin: updatedAdmin });
+    res
+      .status(200)
+      .json({ message: "Account updated successfully", admin: updatedAdmin });
   } catch (error) {
     console.error("Error updating account:", error);
     res.status(500).json({ message: "Failed to update account." });
   }
 };
-
