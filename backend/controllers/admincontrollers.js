@@ -21,9 +21,11 @@ let otpStorage = {};
 // Request OTP
 export const requestOTP = async (req, res) => {
   const { phoneNumber } = req.body || "";
-
+  console.log(phoneNumber);
   try {
     if (phoneNumber !== process.env.ADMIN_PHONE_NUMBER) {
+  console.log(process.env.ADMIN_PHONE_NUMBER);
+
       return res.status(401).json({ message: "Phone number not recognized." });
     }
 
@@ -67,6 +69,7 @@ export const bulkUploadProducts = async (req, res) => {
 // Verify OTP and Login
 export const verifyOTPAndLogin = async (req, res) => {
   const { phoneNumber, otp } = req.body;
+  
 
   try {
     if (otpStorage[phoneNumber] !== parseInt(otp, 10)) {
