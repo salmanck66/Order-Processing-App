@@ -6,6 +6,7 @@ import Orders from "../admin/pages/Orders";
 import Account from "../admin/pages/Account";
 import Products from "../admin/pages/Products";
 import Login from "../admin/pages/login";
+import ProductUpload from "../admin/pages/ProductUpload";
 export const Routes = createBrowserRouter([
   {
     path: "/",
@@ -33,6 +34,10 @@ export const Routes = createBrowserRouter([
                 path: "account",
                 element: <Account />,
               },
+              {
+                path: 'upload',
+                element: < ProductUpload/>
+              }
             ],
           },
           {

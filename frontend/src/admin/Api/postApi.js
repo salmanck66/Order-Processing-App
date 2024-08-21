@@ -1,8 +1,10 @@
 import { adminInstance } from "../../Instance";
 
-export const generatePhoneOtp = async (phone) => {
+export const generatePhoneOtp = async (phoneNumber) => {
   try {
-    const response = await adminInstance.post('/request-otp', { phone });
+    console.log(phoneNumber);
+
+    const response = await adminInstance.post('request-otp', { phoneNumber });
     console.log('OTP Response:', response);
     return response.data;
   } catch (error) {
@@ -11,9 +13,9 @@ export const generatePhoneOtp = async (phone) => {
   }
 };
 
-export const verifyOtp = async (phone) => {
+export const verifyOtp = async (phoneNumber, otp) => {
     try {
-      const response = await adminInstance.post('/verify-otp', { phone });
+      const response = await adminInstance.post('/verify-otp', { phoneNumber, otp });
       console.log('verify-otp response:', response);
       return response.data;
     } catch (error) {
