@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { notification } from 'antd';
 import { generatePhoneOtp, verifyOtp } from '../Api/postApi';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const navigate = useNavigate();
 
   // Show notification
   const openNotification = (type, message) => {
@@ -18,6 +20,7 @@ const Login = () => {
   // Handle phone number submission
   const onPhoneSubmit = async (data) => {
     try {
+
       const response = await generatePhoneOtp(data.phone);
       console.log('OTP generated successfully:', response);
       setOtpSent(true);
@@ -32,9 +35,11 @@ const Login = () => {
   // Handle OTP submission
   const onOtpSubmit = async (data) => {
     try {
-      const response = await verifyOtp(data.otp);
+      console.log(data);
+      const response = await verifyOtp(data.phone,data.otp);
       console.log('OTP verified successfully:', response);
       openNotification('success', 'OTP verified successfully. You are now logged in.');
+        navigate('/admin');
       // Handle successful login logic here
     } catch (error) {
       console.error('Failed to verify OTP:', error);
