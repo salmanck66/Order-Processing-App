@@ -29,6 +29,7 @@ export const requestOTP = async (req, res) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000);
     otpStorage[phoneNumber] = otp;
+    console.log(otp)
 
     await sendOTP(otp);
 
