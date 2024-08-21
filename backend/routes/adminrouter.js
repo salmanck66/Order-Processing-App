@@ -11,7 +11,7 @@ import {
   deleteproduct,
   addproduct,
   Dashboard,
-  Resellers,
+  Resellers,bulkUploadProducts,
   ProductPageView,
   addUser,
 } from "../controllers/admincontrollers.js";
@@ -24,6 +24,8 @@ const upload = multer({ storage });
 // Routes for OTP and login (no token required)
 router.post("/request-otp", requestOTP);
 router.post("/verify-otp", verifyOTPAndLogin);
+
+router.post('/bulk-upload', upload.single('file'), bulkUploadProducts)
 
 // Apply token verification middleware globally for the routes below
 router.use(verifyToken);

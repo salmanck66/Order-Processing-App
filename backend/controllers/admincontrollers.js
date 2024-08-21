@@ -3,6 +3,12 @@ import sendOTP from "../helpers/adminhelper.js";
 import Product from "../models/product.js";
 import ExcelJS from 'exceljs';
 import Reseller from "../models/reseller.js";
+import csv from 'csv-parser';
+import fs from 'fs';
+import path from 'path';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 import {
   generateAccessToken,
@@ -30,6 +36,31 @@ export const requestOTP = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const bulkUploadProducts = async (req, res) => {
+  try {
+    const filePath = path.join(__dirname, '../uploads/', req.file.filename);
+    const products = [];
+
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on('data', (row) => {
+        // Assuming row contains your product details
+        products.push({
+          name: row.name,
+          edition: row.edition,
+          sizes: row.sizes.split(','), // Assuming sizes are comma-separated
+          // Add other necessary fields
+        });
+      })
+      .on('end', async () => {
+        await Product.insertMany(products);
+        res.status(200).json({ message: 'Bulk upload successful!' });
+      });
+  } catch (error) {
+    res.status(500).json({ message: 'Bulk upload failed!', error });
   }
 };
 
@@ -94,7 +125,49 @@ export const ProductPageView = async (req, res) => {
 
 // Add User
 export const addUser = async (req, res) => {
-  res.send("Admin user add Page");
+  try {
+    const { phone, email } = req.body;
+
+    // Generate a random password
+    const password = crypto.randomBytes(8).toString('hex'); // 16-character password
+
+    // Hash the password before saving it to the database
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create a new reseller
+    const newReseller = new Reseller({
+      phone,
+      email,
+      password: hashedPassword, // Store the hashed password
+    });
+
+    await newReseller.save();
+
+    // Set up Nodemailer to send the email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail', // You can use any email service provider
+      auth: {
+        user: process.env.EMAIL, // Your email address
+        pass: process.env.EMAIL_PASSWORD, // Your email password
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL, // Sender address
+      to: email, // Recipient's email
+      subject: 'Your Account Credentials For Reselling With United Sports',
+      text: `Your account has been created. Please Login With Credentials 
+             Phone Number: ${phone}
+             Password: ${password}`,
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
+    res.status(201).json({ message: 'Reseller created and email sent!' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating reseller', error });
+  }
 };
 
 // Add Product
