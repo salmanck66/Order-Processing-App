@@ -23,3 +23,14 @@ export const verifyOtp = async (phoneNumber, otp) => {
       throw error.response ? error.response.data : new Error(error.message);
     }
   };
+
+  export const createUser = async (data) => {
+    try {
+      const response = await adminInstance.post('/adduser', data);
+      console.log('verify-otp response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Error createUser:', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  };
