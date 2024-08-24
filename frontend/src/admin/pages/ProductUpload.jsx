@@ -29,6 +29,9 @@ const ProductUpload = () => {
       <div className=" mx-auto bg-white p-8 rounded shadow-md">
         <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Products Upload</h1>
         <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
+        <Button className="mt-4  flex ms-auto" type="primary" htmlType="submit">
+            upload 
+          </Button>
           {fields.map((field, index) => (
             <UploadItem
               key={field.id}
@@ -40,9 +43,7 @@ const ProductUpload = () => {
           <Button onClick={addProduct} className="mt-4" type="primary">
           Add Item
           </Button>
-          <Button className="mt-4" type="primary" htmlType="submit">
-            Submit
-          </Button>
+         
         </Form>
       </div>
     </div>
