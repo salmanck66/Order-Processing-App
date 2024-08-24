@@ -27,7 +27,7 @@ router.post("/request-otp", requestOTP);
 router.post("/verify-otp", verifyOTPAndLogin);
 
 router.post('/bulk-upload', upload.single('file'), bulkUploadProducts)
-router.get('verify-admin',verifyAdmin)
+router.get('/verify-admin',verifyAdmin)
 // Apply token verification middleware globally for the routes below
 router.use(verifyToken);
 // Routes that require token verification

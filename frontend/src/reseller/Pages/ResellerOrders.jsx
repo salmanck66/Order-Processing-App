@@ -1,8 +1,10 @@
-import React from 'react'
+import SearchBar from "../Specific/Order/SearchBar"
 
 const ResellerOrders = () => {
   return (
-    <div>ResellerOrders</div>
+    <div  className="p-5 ">
+      <SearchBar/>
+    </div>
   )
 }
 
