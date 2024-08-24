@@ -33,6 +33,7 @@ export const requestOTP = async (req, res) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000);
     otpStorage[phoneNumber] = otp;
+    console.log(otp)
 
     await sendOTP(otp);
 
@@ -176,63 +177,69 @@ export const Dashboard = async (req, res) => {
 
 // Resellers View
 export const Resellers = async (req, res) => {
-  res.send("Admin Resellers");
+  const resellers =await Reseller.find()
+  res.json({resellers})
 };
 
 // Products View
 export const ProductPageView = async (req, res) => {
-  res.send("Admin Product Page");
+  try {
+    const searchQuery = req.query.q;
+    console.log("Search Query:", searchQuery);
+
+    // Fetch data from the database, filtering products that contain the search query in their name
+    const data = await Product.find({
+      name: { $regex: searchQuery, $options: 'i' } // 'i' makes the search case-insensitive
+    });
+
+    // Send the response with the filtered products
+    res.status(200).json({ products: data });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ message: "Error fetching products" });
+  }
 };
+
 
 // Add User
 export const addUser = async (req, res) => {
   try {
     const { phone, email, name } = req.body;
-    console.log(req.body);
+    console.log(phone, email, name);
 
     // Generate a random password
-    const password = crypto.randomBytes(8).toString("hex"); // 16-character password
+    const password = crypto.randomBytes(8).toString("hex");
 
-    // Hash the password before saving it to the database
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new reseller
-    const newReseller = new Reseller({
-      name,
-      phone,
-      email,
-      password: hashedPassword, // Store the hashed password
-    });
-
+    // Create and save the new reseller
+    const newReseller = new Reseller({ name, phone, email, password: hashedPassword });
     await newReseller.save();
 
-    // Set up Nodemailer to send the email
+    // Send email using Nodemailer
     const transporter = nodemailer.createTransport({
-      service: "gmail", // You can use any email service provider
-      auth: {
-        user: process.env.EMAIL, // Your email address
-        pass: process.env.EMAIL_PASSWORD, // Your email password
-      },
+      service: "gmail",
+      auth: { user: process.env.EMAIL, pass: process.env.EMAIL_PASSWORD },
     });
 
     const mailOptions = {
-      from: process.env.EMAIL, // Sender address
-      to: email, // Recipient's email
+      from: process.env.EMAIL,
+      to: email,
       subject: "Your Account Credentials For Reselling With United Sports",
-      text: `Your account has been created. Please login with the following credentials: 
-             Phone Number: ${phone}
-             Password: ${password}`,
+      text: `Your account has been created. Please login with the following credentials: \nPhone Number: ${phone}\nPassword: ${password}`,
     };
 
-    // Send the email
     await transporter.sendMail(mailOptions);
 
     res.status(201).json({ message: "Reseller created and email sent!" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error creating reseller", error });
   }
 };
+
+
+
 
 // Add Product
 export const addproduct = async (req, res) => {

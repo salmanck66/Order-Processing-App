@@ -4,7 +4,7 @@ import Admin from "../models/admin.js";
 export const verifyToken = async (req, res, next) => {
   const accessToken = req.cookies.access_token;
   const refreshToken = req.cookies.refresh_token;
-  
+    
   if (!accessToken) {
     if (!refreshToken) {
       return res.status(403).json({ message: "No access token or refresh token provided." });
