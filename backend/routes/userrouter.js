@@ -1,10 +1,9 @@
 import { Router } from 'express';
+import { loginRecallers } from '../controllers/usercontrollers.js';
 
 const router = Router();
 
-router.get('/', (req, res) => {
-    res.send('User Home');
-});
+router.post('/login',loginRecallers)
 
 
 

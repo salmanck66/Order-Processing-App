@@ -1,10 +1,8 @@
 import { userInstance } from "../../Instance";
 
-export const SearchProducts = async (query) => {
+export const recallerLogin = async (data) => {
     try {
-        const response = await userInstance.get(`/search`, {
-            params: { q: query }
-        });
+        const response = await userInstance.post(`/login`, data);
         
         return response.data;
     } catch (error) {
@@ -12,4 +10,3 @@ export const SearchProducts = async (query) => {
         throw error;
     }
 };
-

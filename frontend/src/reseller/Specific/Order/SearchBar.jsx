@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AutoComplete } from 'antd';
-import SearchProducts from '../../Api/getApi';
+import { SearchProducts } from '../../Api/getApi';
 
 const SearchBar = () => {
   const [options, setOptions] = useState([]);
