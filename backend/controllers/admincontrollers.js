@@ -162,7 +162,8 @@ export const Dashboard = async (req, res) => {
 
 // Resellers View
 export const Resellers = async (req, res) => {
-  res.send("Admin Resellers");
+  const resellers =await Reseller.find()
+  res.json({resellers})
 };
 
 // Products View
@@ -174,50 +175,52 @@ export const ProductPageView = async (req, res) => {
 export const addUser = async (req, res) => {
   try {
     const { phone, email, name } = req.body;
-    console.log(phone, email, name);
+    
+    // Check for null or undefined fields
+    if (!phone || !email || !name) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+    
+    // Check for existing reseller with the same phone number
+    const existingReseller = await Reseller.findOne({ phone });
+    if (existingReseller) {
+      return res.status(400).json({ message: "Phone number already in use." });
+    }
 
     // Generate a random password
-    const password = crypto.randomBytes(8).toString("hex"); // 16-character password
+    const password = crypto.randomBytes(8).toString("hex");
 
-    // Hash the password before saving it to the database
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new reseller
-    const newReseller = new Reseller({
-      name,
-      phone,
-      email,
-      password: hashedPassword, // Store the hashed password
-    });
-
+    // Create and save the new reseller
+    const newReseller = new Reseller({ name, phone, email, password: hashedPassword });
     await newReseller.save();
 
-    // Set up Nodemailer to send the email
+    // Send email using Nodemailer
     const transporter = nodemailer.createTransport({
-      service: "gmail", // You can use any email service provider
-      auth: {
-        user: process.env.EMAIL, // Your email address
-        pass: process.env.EMAIL_PASSWORD, // Your email password
-      },
+      service: "gmail",
+      auth: { user: process.env.EMAIL, pass: process.env.EMAIL_PASSWORD },
     });
 
     const mailOptions = {
-      from: process.env.EMAIL, // Sender address
-      to: email, // Recipient's email
+      from: process.env.EMAIL,
+      to: email,
       subject: "Your Account Credentials For Reselling With United Sports",
-      text: `Your account has been created. Please login with the following credentials: 
-             Phone Number: ${phone}
-             Password: ${password}`,
+      text: `Your account has been created. Please login with the following credentials: \nPhone Number: ${phone}\nPassword: ${password}`,
     };
 
-    // Send the email
     await transporter.sendMail(mailOptions);
 
     res.status(201).json({ message: "Reseller created and email sent!" });
   } catch (error) {
+    console.error("Error creating reseller:", error);
     res.status(500).json({ message: "Error creating reseller", error });
   }
 };
+
+
+
 
 // Add Product
 export const addproduct = async (req, res) => {
