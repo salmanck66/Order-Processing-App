@@ -13,6 +13,8 @@ import nodemailer from "nodemailer";
 import {
   generateAccessToken,
   generateRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
 } from "../utils/tokenGen.js";
 
 // Temporary in-memory storage for OTPs
@@ -24,7 +26,7 @@ export const requestOTP = async (req, res) => {
   console.log(phoneNumber);
   try {
     if (phoneNumber !== process.env.ADMIN_PHONE_NUMBER) {
-  console.log(process.env.ADMIN_PHONE_NUMBER);
+  console.log('as',process.env.ADMIN_PHONE_NUMBER);
 
       return res.status(401).json({ message: "Phone number not recognized." });
     }
@@ -41,7 +43,6 @@ export const requestOTP = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 export const bulkUploadProducts = async (req, res) => {
   try {
     const filePath = path.join(__dirname, "../uploads/", req.file.filename);
@@ -68,49 +69,63 @@ export const bulkUploadProducts = async (req, res) => {
 };
 
 // verify-admin
-
 export const verifyAdmin = async (req, res) => {
-  const { accessToken, refreshToken } = req.cookies;
-
+  const accessToken = req.cookies.access_token;
+  const refreshToken = req.cookies.refresh_token;
   try {
-    // Check if accessToken exists
+    // Check if accessToken exists and is valid
     if (accessToken) {
-      return res.status(200).json({ message: 'Admin is authenticated' });
+      try {
+        // Verify and decode the access token
+        const decoded = verifyAccessToken(accessToken);
+        // console.log('decoded',decoded);
+        return res.status(200).json({ message: 'Admin is authenticated' });
+      } catch (err) {
+        // If token is invalid or expired, proceed to check the refresh token
+        console.log('Access token is invalid or expired:', err.message);
+      }
     }
 
-    // If accessToken is not present, check refreshToken
-    const admin = await Admin.findOne({ token: refreshToken });
+    // If accessToken is not valid or present, check refreshToken
+    if (refreshToken) {
 
-    if (!admin) {
-      return res.status(401).json({ message: 'Invalid Refresh token' });
+      const decodedRefreshToken = verifyRefreshToken(refreshToken);
+      const admin = await Admin.findOne({ refreshToken: refreshToken });
+      if (!admin) {
+        return res.status(401).json({ message: 'Invalid Refresh token' });
+      }
+
+      const phoneNumber = process.env.ADMIN_PHONE_NUMBER;
+      // Generate a new access token
+      const newAccessToken = generateAccessToken({ phoneNumber });
+
+      // Set cookies with new tokens
+      res.cookie('access_token', newAccessToken, {
+        maxAge: 60 * 1000,
+        httpOnly: true,
+        sameSite: 'Strict',
+      });
+
+      return res.status(200).json({
+        error: false,
+        accessToken: newAccessToken,
+        message: 'Admin is authenticated with new access token',
+      });
     }
-    const phoneNumber = process.env.ADMIN_PHONE_NUMBER
-    // Generate new access token
-    const { newAccessToken } = await generateAccessToken({phoneNumber});
 
-    // Set cookies with new tokens
-    res.cookie('accessToken', newAccessToken, {
-      maxAge: 60 * 1000,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Set secure flag only in production
-      sameSite: 'Strict',
-    });
-    return res.status(200).json({
-      error: false,
-      accessToken,
-      refreshToken,
-      message: 'Admin   is Available ',
-    });
+    // If both tokens are missing or invalid
+    return res.status(401).json({ message: 'Authentication required' });
   } catch (err) {
     console.error('Error verifying Admin:', err);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
-}
+};
+
 // Verify OTP and Login
 export const verifyOTPAndLogin = async (req, res) => {
   const { phoneNumber, otp } = req.body;
   
-
+  console.log(otp);
   try {
     if (otpStorage[phoneNumber] !== parseInt(otp, 10)) {
       return res.status(401).json({ message: "Invalid OTP." });
@@ -190,17 +205,7 @@ export const ProductPageView = async (req, res) => {
 export const addUser = async (req, res) => {
   try {
     const { phone, email, name } = req.body;
-    
-    // Check for null or undefined fields
-    if (!phone || !email || !name) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
-    
-    // Check for existing reseller with the same phone number
-    const existingReseller = await Reseller.findOne({ phone });
-    if (existingReseller) {
-      return res.status(400).json({ message: "Phone number already in use." });
-    }
+    console.log(phone, email, name);
 
     // Generate a random password
     const password = crypto.randomBytes(8).toString("hex");
@@ -229,7 +234,6 @@ export const addUser = async (req, res) => {
 
     res.status(201).json({ message: "Reseller created and email sent!" });
   } catch (error) {
-    console.error("Error creating reseller:", error);
     res.status(500).json({ message: "Error creating reseller", error });
   }
 };
