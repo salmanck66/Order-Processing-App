@@ -255,10 +255,22 @@ export const addproduct = async (req, res) => {
 
     // Process image files uploaded via Multer and Cloudinary
     const images = req.files
-      ? req.files.map((file) => ({
-          url: file.path,
-          public_id: file.filename,
-        }))
+      ? await Promise.all(
+          req.files.map(async (file) => {
+            const result = await cloudinary.v2.uploader.upload(file.path, {
+              transformation: [
+                { width: 500, crop: "scale" },
+                { quality: 35 },
+                { fetch_format: "auto" },
+              ],
+            });
+
+            return {
+              url: result.secure_url,
+              public_id: result.public_id,
+            };
+          })
+        )
       : [];
 
     const product = new Product({

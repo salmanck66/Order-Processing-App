@@ -7,7 +7,7 @@ import Account from "../admin/pages/Account";
 import Products from "../admin/pages/Products";
 import Login from "../admin/pages/login";
 import ProductUpload from "../admin/pages/ProductUpload";
-import RecallersLogin from "../reseller/Pages/RecallersLogin";
+import RecallersLogin from "../reseller/Pages/ResellersLogin";
 import ProtectedRouteReseller from "../reseller/Utils/ProtectedRouteReseller";
 import ResellerDashboard from "../reseller/Pages/ResellerDashboard";
 import ResellerProducts from "../reseller/Pages/ResellerProducts";
@@ -54,7 +54,7 @@ export const Routes = createBrowserRouter([
         ],
       },
       {
-        path: "reseller-login",
+        path: "",
         element: <RecallersLogin />,
       },
       {
