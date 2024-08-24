@@ -121,7 +121,7 @@ export const verifyAdmin = async (req, res) => {
   }
 };
 
-// Verify OTP and Login
+
 export const verifyOTPAndLogin = async (req, res) => {
   const { phoneNumber, otp } = req.body;
   
@@ -136,23 +136,25 @@ export const verifyOTPAndLogin = async (req, res) => {
     const accessToken = generateAccessToken({ phoneNumber });
     const refreshToken = generateRefreshToken({ phoneNumber });
 
-    // Store the refresh token in the database
+    // Store the refresh token in the database (push to the array)
     await Admin.findOneAndUpdate(
       {},
-      { refreshToken },
+      { $push: { refreshTokens: refreshToken } },
       { upsert: true } // Create a new document if none exists
     );
 
     res.cookie("access_token", accessToken, {
-      maxAge: 1000 * 60 * 15,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite: 'Strict',
+      maxAge: 1000 * 60 * 15, // 15 minutes
     });
+
     res.cookie("refresh_token", refreshToken, {
-      maxAge: 1000 * 60 * 60 * 24 * 1000 ,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 1000 * 60 * 60 * 24 * 1000, 
+      sameSite: 'Strict',
+      maxAge: 1000 * 60 * 60 * 24 * 1000, // 1000 days
     });
     
     res.json({ message: "Login successful." });
@@ -161,6 +163,7 @@ export const verifyOTPAndLogin = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // Logout
 export const logout = async (req, res) => {

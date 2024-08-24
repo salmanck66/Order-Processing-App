@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import Reseller from '../models/reseller.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/tokenGen.js';
+import Product from "../models/product.js";
 
 export const loginRecallers = async (req, res) => {
   try {
@@ -67,6 +68,23 @@ export const loginRecallers = async (req, res) => {
 export const sendOrder =  async (req, res) => {
     
 }
-export const sendOrder =  async (req, res) => {
+// export const sendOrder =  async (req, res) => {
 
-}
+// }
+export const ProductPageView = async (req, res) => {
+    try {
+      const searchQuery = req.query.q;
+      console.log("Search Query:", searchQuery);
+  
+      // Fetch data from the database, filtering products that contain the search query in their name
+      const data = await Product.find({
+        name: { $regex: searchQuery, $options: 'i' } // 'i' makes the search case-insensitive
+      });
+  
+      // Send the response with the filtered products
+      res.status(200).json({ products: data });
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ message: "Error fetching products" });
+    }
+  };
