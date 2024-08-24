@@ -7,6 +7,13 @@ import Account from "../admin/pages/Account";
 import Products from "../admin/pages/Products";
 import Login from "../admin/pages/login";
 import ProductUpload from "../admin/pages/ProductUpload";
+import RecallersLogin from "../reseller/Pages/RecallersLogin";
+import ProtectedRouteReseller from "../reseller/Utils/ProtectedRouteReseller";
+import ResellerDashboard from "../reseller/Pages/ResellerDashboard";
+import ResellerProducts from "../reseller/Pages/ResellerProducts";
+import ResellerAccount from "../reseller/Pages/ResellerAccount";
+import ResellerOrders from "../reseller/Pages/ResellerOrders";
+
 export const Routes = createBrowserRouter([
   {
     path: "/",
@@ -35,20 +42,44 @@ export const Routes = createBrowserRouter([
                 element: <Account />,
               },
               {
-                path: 'upload',
-                element: < ProductUpload/>
-              }
+                path: "upload",
+                element: <ProductUpload />,
+              },
             ],
           },
           {
-            path: 'login',
-            element: <Login/>
+            path: "login",
+            element: <Login />,
+          },
+        ],
+      },
+      {
+        path: "reseller-login",
+        element: <RecallersLogin />,
+      },
+      {
+        path: "reseller",
+        element: <ProtectedRouteReseller />,
+        children: [
+          {
+            path: "",
+            element: <ResellerDashboard />,
+          },
+          {
+            path: "orders",
+            element: <ResellerOrders />,
+          },
+          {
+            path: "products",
+            element: <ResellerProducts />,
+          },
+          {
+            path: "account",
+            element: <ResellerAccount />,
           }
         ],
       },
-      
     ],
   },
 ]);
-
 export default Routes;
