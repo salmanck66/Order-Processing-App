@@ -1,11 +1,12 @@
 import bcrypt from "bcrypt";
 import Reseller from '../models/reseller.js';
+import { generateAccessToken, generateRefreshToken } from '../utils/tokenGen.js';
 
 export const loginRecallers = async (req, res) => {
   try {
     const { phone, password } = req.body;
-    console.log(phone,password);
-    // Check if phone number is provided
+
+    // Check if phone number and password are provided
     if (!phone || !password) {
       return res.status(400).json({ message: 'Phone number and password are required' });
     }
@@ -25,11 +26,18 @@ export const loginRecallers = async (req, res) => {
       return res.status(400).json({ message: 'Invalid password' });
     }
 
+    // Generate JWT tokens
+    const accessToken = generateAccessToken({ phone });
+    const refreshToken = generateRefreshToken({ phone });
+
+    // Send the response with tokens
     res.status(200).json({ 
       message: 'Login successful', 
       user: {
         phone: user.phone,
-      }
+      },
+      accessToken,
+      refreshToken
     });
 
   } catch (error) {
