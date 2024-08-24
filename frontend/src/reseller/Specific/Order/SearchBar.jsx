@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { AutoComplete } from 'antd';
 import { SearchProducts } from '../../Api/getApi';
-import { LuSearchSlash } from 'react-icons/lu';
 import { IoIosSearch } from 'react-icons/io';
 
 const SearchBar = () => {
