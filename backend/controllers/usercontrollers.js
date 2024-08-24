@@ -88,3 +88,45 @@ export const ProductPageView = async (req, res) => {
       res.status(500).json({ message: "Error fetching products" });
     }
   };
+
+  export const logout = async (req, res) => {
+    res.clearCookie("access_token");
+    res.clearCookie("refresh_token");
+    res.json({ message: "Logged out successfully." });
+  };
+
+  export const Dashboard = async (req, res) => {
+    console.log('fasd');
+    res.send("Admin Home");
+  };
+
+  export const changePassword = async (req, res) => {
+    const { phone, currentPassword, newPassword } = req.body;
+  
+    try {
+      // Find the reseller by phone number
+      const reseller = await Reseller.findOne({ phone });
+      if (!reseller) {
+        return res.status(404).json({ message: 'Reseller not found.' });
+      }
+  
+      // Check if the current password is correct
+      const isMatch = await bcrypt.compare(currentPassword, reseller.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Current password is incorrect.' });
+      }
+  
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+  
+      // Update the reseller's password
+      reseller.password = hashedPassword;
+      await reseller.save();
+  
+      return res.status(200).json({ message: 'Password updated successfully.' });
+    } catch (error) {
+      console.error('Error updating password:', error);
+      return res.status(500).json({ message: 'Internal server error.' });
+    }
+  };
+  

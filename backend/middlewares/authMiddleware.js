@@ -7,20 +7,20 @@ export const verifyToken = async (req, res, next) => {
   const refreshToken = req.cookies.refresh_token;
 
   // Helper function to handle token renewal
-  const handleTokenRenewal = async (userType, userId) => {
+  const handleTokenRenewal = async (userType, phoneNumber) => {
     try {
       // Verify the refresh token
       const decodedRefreshToken = verifyRefreshToken(refreshToken);
 
       // Find the user in the appropriate collection
       const UserModel = userType === 'admin' ? Admin : Reseller;
-      const user = await UserModel.findOne({ refreshTokens: refreshToken });
+      const user = await UserModel.findOne({ refreshTokens: { $in: [refreshToken] } });
       if (!user) {
         return res.status(401).json({ message: "Refresh token not found or invalid." });
       }
 
       // Generate new access token
-      const newAccessToken = generateAccessToken({ phoneNumber: decodedRefreshToken.phoneNumber });
+      const newAccessToken = generateAccessToken({ phoneNumber });
 
       res.cookie('access_token', newAccessToken, { 
         httpOnly: true, 
@@ -47,7 +47,7 @@ export const verifyToken = async (req, res, next) => {
     try {
       // Determine user type from refresh token
       const decodedRefreshToken = verifyRefreshToken(refreshToken);
-      const userType = decodedRefreshToken.userType; // Make sure to include userType in the refresh token payload
+      const userType = decodedRefreshToken.userType; // Ensure userType is included in the refresh token payload
 
       // Handle token renewal for the user type
       await handleTokenRenewal(userType, decodedRefreshToken.phoneNumber);
@@ -75,10 +75,10 @@ export const verifyToken = async (req, res, next) => {
       // Verify the refresh token and handle accordingly
       try {
         const decodedRefreshToken = verifyRefreshToken(refreshToken);
-        const userType = decodedRefreshToken.userType; // Make sure to include userType in the refresh token payload
+        const userType = decodedRefreshToken.userType; // Ensure userType is included in the refresh token payload
         const UserModel = userType === 'admin' ? Admin : Reseller;
 
-        const user = await UserModel.findOne({ refreshTokens: refreshToken });
+        const user = await UserModel.findOne({ refreshTokens: { $in: [refreshToken] } });
         if (!user) {
           return res.status(401).json({ message: "Refresh token not found or invalid." });
         }
