@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { AutoComplete } from 'antd';
 import { SearchProducts } from '../../Api/getApi';
+import { LuSearchSlash } from 'react-icons/lu';
+import { IoIosSearch } from 'react-icons/io';
 
 const SearchBar = () => {
   const [options, setOptions] = useState([]);
@@ -21,6 +23,8 @@ const SearchBar = () => {
   };
 
   return (
+   <div className='w-full  justify-end flex'>
+    
     <AutoComplete
       style={{
         width: 400,
@@ -28,7 +32,10 @@ const SearchBar = () => {
       options={options}
       placeholder="Search Items..."
       onSearch={handleSearch}
+      className='w-full  '
     />
+    <IoIosSearch className='text-3xl border bg-white rounded-md'/>
+   </div>
   );
 };
 

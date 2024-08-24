@@ -2,25 +2,31 @@ import React from 'react';
 import { Input, Button, notification } from 'antd';
 import { useForm, Controller } from 'react-hook-form';
 import { recallerLogin } from '../Api/PostApi';
+import { useNavigate } from 'react-router-dom';
 
 const ResellersLogin = () => {
   const { control, handleSubmit, formState: { errors, isSubmitting }, clearErrors } = useForm();
+  const navigate = useNavigate();
 
   const onSubmit = async (data) => {
     try {
-      const response = await recallerLogin(data); // Assuming this function posts the login data to your API
-        // If the login is successful, show a success notification
+      const response = await recallerLogin(data);
+        // Show success notification
         notification.success({
           message: 'Login Successful',
           description: 'You have successfully logged in.',
         });
+        navigate('/reseller');
 
-      
+        // Redirect to the reseller page
+        // Show error notification
+       
+
     } catch (error) {
-      // Handle any other errors that may occur during the API call
+      // Handle unexpected errors
       notification.error({
         message: 'Login Error',
-        description: error.response.data.message||'An unexpected error occurred. Please try again later.',
+        description: error.response?.data?.message || 'An unexpected error occurred. Please try again later.',
       });
       console.error('Login error:', error);
     }
