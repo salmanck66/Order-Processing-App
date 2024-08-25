@@ -4,7 +4,10 @@ h1 {
     font-family: 'Righteous', cursive;
     font-size: 28px;
   }
-
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

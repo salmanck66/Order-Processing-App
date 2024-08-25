@@ -5,7 +5,7 @@ const ProtectedRouteReseller = () => {
   return (
     <div className="flex flex-col  h-screen  bg-ternary  " >
         <NavBar/>
-        <div className=" mx-1 rounded-lg rounded-t-none">
+        <div className=" mx-1 rounded-lg rounded-t-none overflow-y-scroll no-scrollbar">
         <Outlet/>
         </div>
     </div>

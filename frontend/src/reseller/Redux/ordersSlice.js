@@ -9,18 +9,44 @@ const ordersSlice = createSlice({
   initialState,
   reducers: {
     addOrder: (state, action) => {
-      state.orders.push(action.payload);
+      const initializedOrder = {
+        ...action.payload,
+        OrderSizes: Object.fromEntries(
+          Object.entries(action.payload.sizes).map(([size, available]) => [
+            size, 
+            { available: available ? 1 : 0, quantity: available ? 1 : 0 }
+          ])
+        ),
+      };
+      console.log('initializedOrder', initializedOrder);
+      state.orders.push(initializedOrder);
     },
     removeOrder: (state, action) => {
-      state.orders = state.orders.filter(order => order.id !== action.payload);
+      state.orders = state.orders.filter(order => order._id !== action.payload);
     },
     updateOrder: (state, action) => {
-      const index = state.orders.findIndex(order => order.id === action.payload.id);
-      if (index !== -1) {
-        state.orders[index] = action.payload;
-      }
+      const { _id, sizes } = action.payload;
+
+      state.orders = state.orders.map(order => {
+        if (order._id === _id) {
+          const updatedOrderSizes = { ...order.OrderSizes };
+
+          // Update the sizes in the OrderSizes object
+          Object.entries(sizes).forEach(([size, { quantity }]) => {
+            if (updatedOrderSizes[size]) {
+              updatedOrderSizes[size] = {
+                ...updatedOrderSizes[size],
+                quantity,
+              };
+            }
+          });
+
+          return { ...order, OrderSizes: updatedOrderSizes };
+        }
+        return order;
+      });
     },
-    clearOrders: state => {
+    clearOrders: (state) => {
       state.orders = [];
     },
   },
