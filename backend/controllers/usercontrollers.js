@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import Reseller from '../models/reseller.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/tokenGen.js';
 import Product from "../models/product.js";
+import Order from '../models/order.js';
 
 export const loginRecallers = async (req, res) => {
   try {
@@ -127,6 +128,53 @@ export const ProductPageView = async (req, res) => {
     } catch (error) {
       console.error('Error updating password:', error);
       return res.status(500).json({ message: 'Internal server error.' });
+    }
+  };
+
+  export const submitorder =async (req, res) => {
+    try {
+      const { resellerId, products } = req.body;
+  
+      // Find the reseller by ID
+      const reseller = await Reseller.findById(resellerId);
+      if (!reseller) {
+        return res.status(404).json({ message: 'Reseller not found' });
+      }
+  
+      // Prepare the products array for the order
+      const orderProducts = await Promise.all(
+        products.map(async (item) => {
+          const product = await Product.findById(item.id);
+          if (!product) {
+            throw new Error(`Product with ID ${item.id} not found`);
+          }
+  
+          return {
+            id: product._id,
+            name: product.name,
+            image: product.images[0].url, // Assuming you want the first image in the array
+            size: item.size,
+            sizeQuantity: item.sizeQuantity,
+          };
+        })
+      );
+  
+      // Create the order
+      const order = new Order({
+        reseller: {
+          id: reseller._id,
+          name: reseller.name,
+        },
+        products: orderProducts,
+      });
+  
+      // Save the order to the database
+      await order.save();
+  
+      res.status(201).json({ message: 'Order placed successfully', order });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error', error: error.message });
     }
   };
   
