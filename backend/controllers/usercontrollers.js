@@ -133,10 +133,12 @@ export const ProductPageView = async (req, res) => {
   // Function to create and save an order
   export const submitorder = async (req, res) => {
     try {
-      const { resellerId, products } = req.body;
-  
+      const  products  = req.body;
+      
+      const {phone}  = req.user
+
       // Find the reseller by ID
-      const reseller = await Reseller.findById(resellerId);
+      const reseller = await Reseller.findOne({ phone });
       if (!reseller) {
         return res.status(404).json({ message: 'Reseller not found' });
       }
@@ -153,6 +155,8 @@ export const ProductPageView = async (req, res) => {
           const selectedSizes = Object.keys(item.orderSizes).reduce(
             (acc, size) => {
               if (item.orderSizes[size].quantity > 0) {
+                console.log(item.orderSizes[size].quantity);
+                
                 acc.push({
                   size: size,
                   quantity: item.orderSizes[size].quantity,

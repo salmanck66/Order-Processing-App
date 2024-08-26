@@ -24,19 +24,23 @@ const orderSchema = new mongoose.Schema({
         required: true,
       },
       image: {
-        type: String, // Assuming you're storing the image URL as a string
-        required: true,
-      },
-      size: {
         type: String,
-        enum: ['S', 'M', 'L', 'XL', 'XXL'],
         required: true,
       },
-      sizeQuantity: {
-        type: Number,
-        required: true,
-        min: 1,
-      },
+      sizes: [
+        {
+          size: {
+            type: String,
+            enum: ['S', 'M', 'L', 'XL', 'XXL'],
+            required: true,
+          },
+          quantity: {
+            type: Number,
+            required: true,
+            min: 1,
+          },
+        },
+      ],
     },
   ],
   createdAt: {

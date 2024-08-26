@@ -3,9 +3,9 @@ import Admin from "../models/admin.js";
 import Reseller from "../models/reseller.js";
 
 export const verifyToken = async (req, res, next) => {
-  const accessToken = req.cookies.access_token;
-  const refreshToken = req.cookies.refresh_token;
-
+  const accessToken = req.cookies.accessToken;
+  const refreshToken = req.cookies.refreshToken;
+   
   // Helper function to handle token renewal
   const handleTokenRenewal = async (userType, phoneNumber) => {
     try {
@@ -22,7 +22,7 @@ export const verifyToken = async (req, res, next) => {
       // Generate new access token
       const newAccessToken = generateAccessToken({ phoneNumber });
 
-      res.cookie('access_token', newAccessToken, { 
+      res.cookie('accessToken', newAccessToken, { 
         httpOnly: true, 
         maxAge: 1000 * 60 * 15, // 15 minutes
         secure: process.env.NODE_ENV === 'production',
