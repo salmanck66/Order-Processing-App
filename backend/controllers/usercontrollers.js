@@ -111,7 +111,6 @@ export const ProductPageView = async (req, res) => {
         return res.status(404).json({ message: 'Reseller not found.' });
       }
   
-      // Check if the current password is correct
       const isMatch = await bcrypt.compare(currentPassword, reseller.password);
       if (!isMatch) {
         return res.status(400).json({ message: 'Current password is incorrect.' });
