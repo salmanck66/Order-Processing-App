@@ -130,7 +130,8 @@ export const ProductPageView = async (req, res) => {
     }
   };
 
-  export const submitorder =async (req, res) => {
+  // Function to create and save an order
+  export const submitorder = async (req, res) => {
     try {
       const { resellerId, products } = req.body;
   
@@ -143,17 +144,30 @@ export const ProductPageView = async (req, res) => {
       // Prepare the products array for the order
       const orderProducts = await Promise.all(
         products.map(async (item) => {
-          const product = await Product.findById(item.id);
+          const product = await Product.findById(item.productId);
           if (!product) {
-            throw new Error(`Product with ID ${item.id} not found`);
+            throw new Error(`Product with ID ${item.productId} not found`);
           }
+  
+          // Extract the selected sizes and quantities
+          const selectedSizes = Object.keys(item.orderSizes).reduce(
+            (acc, size) => {
+              if (item.orderSizes[size].quantity > 0) {
+                acc.push({
+                  size: size,
+                  quantity: item.orderSizes[size].quantity,
+                });
+              }
+              return acc;
+            },
+            []
+          );
   
           return {
             id: product._id,
             name: product.name,
             image: product.images[0].url, // Assuming you want the first image in the array
-            size: item.size,
-            sizeQuantity: item.sizeQuantity,
+            sizes: selectedSizes,
           };
         })
       );
@@ -176,4 +190,5 @@ export const ProductPageView = async (req, res) => {
       res.status(500).json({ message: 'Server error', error: error.message });
     }
   };
+  
   
