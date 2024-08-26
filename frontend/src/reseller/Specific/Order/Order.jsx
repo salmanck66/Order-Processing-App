@@ -25,12 +25,12 @@ const Order = ({ product, index }) => {
     }));
   };
 
-  useEffect(() => {
-    setQuantities(
-      Object.fromEntries(Object.entries(product.OrderSizes).map(([size, { available, quantity }]) => [size, { available, quantity }]))
-    );
-    updateTotalOrderCount();
-  }, [product]);
+  // useEffect(() => {
+  //   setQuantities(
+  //     Object.fromEntries(Object.entries(product.OrderSizes).map(([size, {  quantity }]) => [size, {  quantity }]))
+  //   );
+  //   updateTotalOrderCount();
+  // }, [product]);
 
   useEffect(() => {
     updateTotalOrderCount();
@@ -90,7 +90,7 @@ const Order = ({ product, index }) => {
       </div>
       <div className="sm:col-span-1 flex  items-center h-full justify-center sm:items-start">
         <Tag color="blue" className="text-md font-bold px-3 py-1">
-          {totalOrderCount} Total Count
+          {/* {totalOrderCount} Total Count */}
         </Tag>
         <Button
           className="bg-red-500 hover:bg-red-700 w-fit ms-auto text-white font-bold py-2 px-4 "
