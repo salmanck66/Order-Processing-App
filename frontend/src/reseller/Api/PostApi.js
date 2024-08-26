@@ -24,3 +24,14 @@ export const SearchProducts = async (query) => {
         throw error;
     }
 };
+
+export const submitorder = async (data) => {
+    try {
+        const response = await userInstance.post(`/submitorder`, data);
+        
+        return response.data;
+    } catch (error) {
+        console.error('Error searching products:', error);
+        throw error;
+    }
+};
