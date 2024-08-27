@@ -20,7 +20,6 @@ const Login = () => {
   // Handle phone number submission
   const onPhoneSubmit = async (data) => {
     try {
-
       const response = await generatePhoneOtp(data.phone);
       console.log('OTP generated successfully:', response);
       setOtpSent(true);
@@ -35,12 +34,10 @@ const Login = () => {
   // Handle OTP submission
   const onOtpSubmit = async (data) => {
     try {
-      console.log(data);
-      const response = await verifyOtp(data.phone,data.otp);
+      const response = await verifyOtp(phoneNumber, data.otp); // Use the stored phoneNumber
       console.log('OTP verified successfully:', response);
       openNotification('success', 'OTP verified successfully. You are now logged in.');
-        navigate('/admin');
-      // Handle successful login logic here
+      navigate('/admin');
     } catch (error) {
       console.error('Failed to verify OTP:', error);
       openNotification('error', 'Failed to verify OTP. Please try again.');
@@ -98,6 +95,7 @@ const Login = () => {
                 } rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                 {...register('otp', {
                   required: 'OTP is required',
+                  value: '',
                   pattern: {
                     value: /^[0-9]{6}$/,
                     message: 'Invalid OTP',

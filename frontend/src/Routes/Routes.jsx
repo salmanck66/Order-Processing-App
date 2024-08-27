@@ -13,6 +13,8 @@ import ResellerDashboard from "../reseller/Pages/ResellerDashboard";
 import ResellerProducts from "../reseller/Pages/ResellerProducts";
 import ResellerAccount from "../reseller/Pages/ResellerAccount";
 import ResellerOrders from "../reseller/Pages/ResellerOrders";
+import PreviousOrder from "../reseller/Pages/PreviousOrder";
+import OrderDetailByDate from "../reseller/Pages/OrserDetailByDate";
 
 export const Routes = createBrowserRouter([
   {
@@ -76,10 +78,19 @@ export const Routes = createBrowserRouter([
           {
             path: "account",
             element: <ResellerAccount />,
-          }
+          },
+          {
+            path: "previous-orders",
+            element: <PreviousOrder />,
+          },
+          {
+            path: "previous-order/:orderId",
+            element: <OrderDetailByDate />,
+          },
         ],
       },
     ],
   },
 ]);
+
 export default Routes;
