@@ -159,7 +159,7 @@ export const ProductPageView = async (req, res) => {
         products.map(async (item) => {
           const product = await Product.findById(item.productId);
           if (!product) {
-            throw new Error(`Product with ID ${item.productId} not found`);
+            throw new Error(Product with ID ${item.productId} not found);
           }
   
           // Extract the selected sizes and quantities
@@ -183,12 +183,13 @@ export const ProductPageView = async (req, res) => {
       // Check if there is an existing order within the same time frame on the current day
       const existingOrder = await Order.findOne({
         'reseller.id': reseller._id,
-        createdAt: { $gte: startTime.toDate(), $lt: endTime.toDate() },
+        createdAt: { $gte: moment().startOf('day').toDate(), $lt: moment()}
       });
       console.log(existingOrder)
   
       if (existingOrder) {
-        // Concatenate the new products with the existing order
+        console.log('hai');
+        
         existingOrder.products = existingOrder.products.concat(orderProducts);
         await existingOrder.save();
   
