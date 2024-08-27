@@ -133,22 +133,19 @@ export const ProductPageView = async (req, res) => {
   export const submitorder = async (req, res) => {
     try {
       const products = req.body;
-      const { phone } = req.user;  
+      const { phone } = req.user;
   
-      // Check if the current time is between 8 PM and 12 AM
+      // Define the order placement time window
       const currentTime = moment();
-      const startTime = moment().set({ hour: 20, minute: 0, second: 0 });
-      const endTime = moment().add(1, 'day').set({ hour: 0, minute: 0, second: 0 });
+      const startTime = moment().set({ hour: 20, minute: 0, second: 0 }); // 8 PM today
+      const endTime = moment().add(1, 'day').set({ hour: 11, minute: 59, second: 59 }); // 11:59 AM the next day
   
-      // if (!currentTime.isBetween(startTime, endTime)) {
-      //   return res.status(403).json({ message: 'Orders can only be placed between 8 PM and 12 AM.' });
-      // }
-      console.log("Phone number:", phone);
-      // Find the reseller by phone
+      // Check if the current time is within the allowed window
+      if (!currentTime.isBetween(startTime, endTime)) {
+        return res.status(403).json({ message: 'Orders can only be placed between 8 PM and 12 PM.' });
+      }
+  
       const reseller = await Reseller.findOne({ phone });
-      
-      // Log the reseller info for debugging
-      console.log("Reseller found:", reseller);
   
       if (!reseller) {
         return res.status(404).json({ message: 'Reseller not found' });
@@ -162,7 +159,6 @@ export const ProductPageView = async (req, res) => {
             throw new Error(`Product with ID ${item.productId} not found`);
           }
   
-          // Extract the selected sizes and quantities
           const selectedSizes = Object.keys(item.orderSizes).reduce((acc, size) => {
             if (item.orderSizes[size].quantity > 0) {
               acc.push({
@@ -180,31 +176,32 @@ export const ProductPageView = async (req, res) => {
         })
       );
   
-      // Check if there is an existing order within the same time frame on the current day
+      // Determine the order's effective date (next day if placed between 8 PM and 11:59 AM)
+      const orderDate = currentTime.isBetween(startTime, endTime) ? moment().add(1, 'day').startOf('day').toDate() : moment().startOf('day').toDate();
+  
+      // Check if there is an existing order for the effective date
       const existingOrder = await Order.findOne({
         'reseller.id': reseller._id,
-        createdAt: { $gte: moment().startOf('day').toDate(), $lt: moment()}
+        createdAt: { $gte: orderDate },
       });
-      console.log(existingOrder)
   
       if (existingOrder) {
-        console.log('hai');
-        
+        // Update the existing order
         existingOrder.products = existingOrder.products.concat(orderProducts);
         await existingOrder.save();
   
         return res.status(200).json({ message: 'Order updated successfully', order: existingOrder });
       } else {
-        // Create a new order
+        // Create a new order for the effective date
         const order = new Order({
           reseller: {
             id: reseller._id,
             name: reseller.name,
           },
           products: orderProducts,
+          createdAt: orderDate, // Set the order's creation date to the effective date
         });
   
-        // Save the order to the database
         await order.save();
   
         return res.status(201).json({ message: 'Order placed successfully', order });
@@ -217,6 +214,7 @@ export const ProductPageView = async (req, res) => {
   
   
   
+  
   export const prevOrdersOut = async (req, res) => {
     try {
       const { phone } = req.user;
@@ -226,7 +224,7 @@ export const ProductPageView = async (req, res) => {
         .sort({ createdAt: -1 })
   
       const formattedOrders = recentOrders.map(order => ({
-        id:recaller._id,
+        id:order._id,
         date: order.createdAt.toISOString().split('T')[0], // Format the date as YYYY-MM-DD
         productCount: order.products.length,
       }));
@@ -240,7 +238,7 @@ export const ProductPageView = async (req, res) => {
 
   export const eachOrder = async (req, res) => {
     try {
-      const { phone } = req.user;
+      const { orderId } = req.params;
       const recaller = await Reseller.findOne({ phone });
   
       if (!recaller) {
@@ -248,7 +246,7 @@ export const ProductPageView = async (req, res) => {
       }
   
       // Find orders for the reseller and populate product details
-      const orders = await Order.find({ 'reseller.id': recaller._id })
+      const orders = await Order.findById(orderId)
         .populate('products.id')  // Populate product details using the 'id' reference
         .sort({ createdAt: -1 });
   

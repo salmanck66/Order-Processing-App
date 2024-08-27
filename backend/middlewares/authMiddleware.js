@@ -6,7 +6,7 @@ export const verifyToken = async (req, res, next) => {
   const refreshToken = req.cookies.refreshToken;
    
   // Helper function to handle token renewal
-  const handleTokenRenewal = async (phoneNumber) => {
+  const handleTokenRenewal = async (phone) => {
     try {
       // Verify the refresh token
       const decodedRefreshToken = verifyRefreshToken(refreshToken);
@@ -18,7 +18,7 @@ export const verifyToken = async (req, res, next) => {
       }
 
       // Generate new access token
-      const newAccessToken = generateAccessToken({ phoneNumber });
+      const newAccessToken = generateAccessToken({ phone });
 
       res.cookie('accessToken', newAccessToken, { 
         httpOnly: true, 
@@ -45,7 +45,7 @@ export const verifyToken = async (req, res, next) => {
     try {
       // Determine phone number from refresh token
       const decodedRefreshToken = verifyRefreshToken(refreshToken);
-      await handleTokenRenewal(decodedRefreshToken.phoneNumber);
+      await handleTokenRenewal(decodedRefreshToken.phone);
       
     } catch (err) {
       console.error('Token verification error:', err);
@@ -76,7 +76,7 @@ export const verifyToken = async (req, res, next) => {
           return res.status(401).json({ message: "Refresh token not found or invalid." });
         }
 
-        const newAccessToken = generateAccessToken({ phoneNumber: decodedRefreshToken.phoneNumber });
+        const newAccessToken = generateAccessToken({ phone: decodedRefreshToken.phone });
 
         res.cookie('accessToken', newAccessToken, { 
           httpOnly: true,

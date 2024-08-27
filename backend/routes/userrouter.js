@@ -14,7 +14,7 @@ router.get("/",Dashboard);
 router.post('/submitorder',submitorder)
 router.post('/editprofile',changePassword)
 router.get('/recent-orders',prevOrdersOut)
-router.get('/eachorder',eachOrder)
+router.get('/eachorder/:orderId',eachOrder)
 
 
 
