@@ -142,7 +142,7 @@ export const ProductPageView = async (req, res) => {
       const startTime = moment().set({ hour: 20, minute: 0 });
       const endTime = moment().set({ hour: 23, minute: 59 });
   
-      if (!currentTime.isBetween(startTime, endTime)) {
+      if (currentTime.isBetween(startTime, endTime)) {
         return res.status(403).json({ message: 'Orders can only be placed between 8 PM and 12 PM' });
       }
   
@@ -213,8 +213,12 @@ export const ProductPageView = async (req, res) => {
   
   export const prevOrdersOut = async (req, res) => {
     try {
-      const resellerId = req.user.id; // Assuming you have the reseller ID in req.user from the middleware
-      const recentOrders = await Order.find({ 'reseller.id': resellerId })
+      const { phone } = req.user;
+      const recaller = await   Reseller.findOne({phone})
+      console.log(recaller,);
+      
+       // Assuming you have the reseller ID in req.user from the middleware
+      const recentOrders = await Order.find({ 'reseller.id': recaller._id })
         .sort({ createdAt: -1 })
   
       const formattedOrders = recentOrders.map(order => ({
