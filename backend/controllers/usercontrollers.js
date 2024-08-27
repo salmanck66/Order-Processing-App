@@ -159,7 +159,7 @@ export const ProductPageView = async (req, res) => {
         products.map(async (item) => {
           const product = await Product.findById(item.productId);
           if (!product) {
-            throw new Error(Product with ID ${item.productId} not found);
+            throw new Error(`Product with ID ${item.productId} not found`);
           }
   
           // Extract the selected sizes and quantities
