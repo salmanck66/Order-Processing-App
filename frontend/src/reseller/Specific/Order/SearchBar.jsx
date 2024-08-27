@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AutoComplete } from 'antd';
 import { IoIosSearch } from 'react-icons/io';
 import { SearchProducts } from '../../Api/PostApi';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addOrder } from '../../Redux/ordersSlice';
+import { notification } from 'antd';
 
 const SearchBar = () => {
+  const orders = useSelector(state => state.orders.orders);
   const dispatch = useDispatch();
   const [options, setOptions] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,8 +17,19 @@ const SearchBar = () => {
     setSearchTerm(inputValue); // Update the search term state
   };
 
-  const addToOrder = (product) => {
-    dispatch(addOrder(product)); // Dispatch the product details to the Redux store
+  const addToOrder = (product, index) => {
+    const productExists = orders.some((item) => item._id === product._id);
+  
+    if (productExists) {
+      notification.info({
+        message: `Product Already Added`,
+        description: ` ${product.name} is already in your order.`,
+        placement: 'topRight',
+      });
+    } else {
+      dispatch(addOrder(product)); // Dispatch the product details to the Redux store
+      
+    }
   };
 
   const CustomDropdown = ({ options }) => (
@@ -24,7 +37,7 @@ const SearchBar = () => {
       {options.map((option, index) => (
         <li
           key={index}
-          onClick={() => addToOrder(option.product)} // Pass the selected product to addToOrder
+          onClick={() => addToOrder(option.product, index)} // Pass the selected product and index to addToOrder
           className="p-2 flex items-center gap-2 hover:bg-gray-200 rounded-lg cursor-pointer"
         >
           <img
