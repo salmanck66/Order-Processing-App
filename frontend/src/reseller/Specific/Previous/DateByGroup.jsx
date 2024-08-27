@@ -1,107 +1,40 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Table } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { fetchOrders } from '../../Api/getApi';
 
 const columns = [
   {
-    title: 'Name',
-    dataIndex: 'name',
-    filters: [
-      {
-        text: 'Joe',
-        value: 'Joe',
-      },
-      {
-        text: 'Category 1',
-        value: 'Category 1',
-        children: [
-          {
-            text: 'Yellow',
-            value: 'Yellow',
-          },
-          {
-            text: 'Pink',
-            value: 'Pink',
-          },
-        ],
-      },
-      {
-        text: 'Category 2',
-        value: 'Category 2',
-        children: [
-          {
-            text: 'Green',
-            value: 'Green',
-          },
-          {
-            text: 'Black',
-            value: 'Black',
-          },
-        ],
-      },
-    ],
+    title: 'date',
+    dataIndex: 'date',
+
     filterMode: 'tree',
     filterSearch: true,
     onFilter: (value, record) => record.name.includes(value),
     width: '30%',
   },
   {
-    title: 'Age',
-    dataIndex: 'age',
+    title: 'Product Count',
+    dataIndex: 'productCount',
     sorter: (a, b) => a.age - b.age,
   },
   {
-    title: 'Address',
-    dataIndex: 'address',
-    filters: [
-      {
-        text: 'London',
-        value: 'London',
-      },
-      {
-        text: 'New York',
-        value: 'New York',
-      },
-    ],
+    title: 'Order Id',
+    dataIndex: 'id',
+   
     onFilter: (value, record) => record.address.startsWith(value),
     filterSearch: true,
     width: '40%',
   },
 ];
 
-const data = [
-  {
-    key: '1',
-    name: 'John Brown',
-    age: 32,
-    address: 'New York No. 1 Lake Park',
-  },
-  {
-    key: '2',
-    name: 'Jim Green',
-    age: 42,
-    address: 'London No. 1 Lake Park',
-  },
-  {
-    key: '3',
-    name: 'Joe Black',
-    age: 32,
-    address: 'Sydney No. 1 Lake Park',
-  },
-  {
-    key: '4',
-    name: 'Jim Red',
-    age: 32,
-    address: 'London No. 2 Lake Park',
-  },
-];
 
 const onChange = (pagination, filters, sorter, extra) => {
   console.log('params', pagination, filters, sorter, extra);
 };
 
 const DateByGroup = () => {
+    const [data, setData] = useState([])
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -110,6 +43,7 @@ const DateByGroup = () => {
         const response =  fetchOrders()
         const data = await response;
         console.log('Fetched data:', data);
+        setData(data.orders)
         // Set data to state if needed
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -121,7 +55,7 @@ const DateByGroup = () => {
 
   // Handle row click to navigate to a different page
   const onRowClick = (record) => {
-    navigate(`/reseller/previous-order/${record.key}`); // Replace with the actual route and parameter
+    navigate(`/reseller/previous-order/${record.id}`); // Replace with the actual route and parameter
   };
 
   return (
