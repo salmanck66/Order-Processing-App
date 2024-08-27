@@ -1,5 +1,4 @@
 import { verifyAccessToken, verifyRefreshToken, generateAccessToken, generateRefreshToken } from "../utils/tokenGen.js";
-import Admin from "../models/admin.js";
 import Reseller from "../models/reseller.js";
 
 export const verifyToken = async (req, res, next) => {
@@ -7,15 +6,14 @@ export const verifyToken = async (req, res, next) => {
   const refreshToken = req.cookies.refreshToken;
    
   // Helper function to handle token renewal
-  const handleTokenRenewal = async (userType, phoneNumber) => {
+  const handleTokenRenewal = async (phoneNumber) => {
     try {
       // Verify the refresh token
       const decodedRefreshToken = verifyRefreshToken(refreshToken);
 
-      // Find the user in the appropriate collection
-      const UserModel = userType === 'admin' ? Admin : Reseller;
-      const user = await UserModel.findOne({ refreshTokens: { $in: [refreshToken] } });
-      if (!user) {
+      // Find the reseller by refresh token
+      const reseller = await Reseller.findOne({ refreshTokens: { $in: [refreshToken] } });
+      if (!reseller) {
         return res.status(401).json({ message: "Refresh token not found or invalid." });
       }
 
@@ -26,7 +24,7 @@ export const verifyToken = async (req, res, next) => {
         httpOnly: true, 
         maxAge: 1000 * 60 * 15, // 15 minutes
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict' // Add SameSite attribute for additional security
+        sameSite: 'Strict'
       });
 
       req.user = verifyAccessToken(newAccessToken);
@@ -45,12 +43,9 @@ export const verifyToken = async (req, res, next) => {
 
     // If no access token, try to verify and renew using refresh token
     try {
-      // Determine user type from refresh token
+      // Determine phone number from refresh token
       const decodedRefreshToken = verifyRefreshToken(refreshToken);
-      const userType = decodedRefreshToken.userType; // Ensure userType is included in the refresh token payload
-
-      // Handle token renewal for the user type
-      await handleTokenRenewal(userType, decodedRefreshToken.phoneNumber);
+      await handleTokenRenewal(decodedRefreshToken.phoneNumber);
       
     } catch (err) {
       console.error('Token verification error:', err);
@@ -75,17 +70,15 @@ export const verifyToken = async (req, res, next) => {
       // Verify the refresh token and handle accordingly
       try {
         const decodedRefreshToken = verifyRefreshToken(refreshToken);
-        const userType = decodedRefreshToken.userType; // Ensure userType is included in the refresh token payload
-        const UserModel = userType === 'admin' ? Admin : Reseller;
 
-        const user = await UserModel.findOne({ refreshTokens: { $in: [refreshToken] } });
-        if (!user) {
+        const reseller = await Reseller.findOne({ refreshTokens: { $in: [refreshToken] } });
+        if (!reseller) {
           return res.status(401).json({ message: "Refresh token not found or invalid." });
         }
 
         const newAccessToken = generateAccessToken({ phoneNumber: decodedRefreshToken.phoneNumber });
 
-        res.cookie('access_token', newAccessToken, { 
+        res.cookie('accessToken', newAccessToken, { 
           httpOnly: true,
           maxAge: 15 * 60 * 1000,
           secure: process.env.NODE_ENV === 'production',

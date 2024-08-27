@@ -5,7 +5,7 @@ import Product from "../models/product.js";
 import Order from '../models/order.js';
 import moment from 'moment';
 
-export const loginRecallers = async (req, res) => {
+export const loginResellers = async (req, res) => {
   try {
     const { phone, password } = req.body;
 
@@ -14,16 +14,16 @@ export const loginRecallers = async (req, res) => {
       return res.status(400).json({ message: 'Phone number and password are required' });
     }
 
-    // Find the user by phone number
-    const user = await Reseller.findOne({ phone });
+    // Find the reseller by phone number
+    const reseller = await Reseller.findOne({ phone });
 
-    // Check if the user exists
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    // Check if the reseller exists
+    if (!reseller) {
+      return res.status(404).json({ message: 'Reseller not found' });
     }
 
     // Compare the provided password with the hashed password
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, reseller.password);
     
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid password' });
@@ -34,13 +34,13 @@ export const loginRecallers = async (req, res) => {
     const refreshToken = generateRefreshToken({ phone });
 
     // Save the refresh token in the database
-    user.refreshTokens.push(refreshToken);
-    await user.save();
+    reseller.refreshTokens.push(refreshToken);
+    await reseller.save();
 
     // Set the access token in a cookie
     res.cookie('accessToken', accessToken, {
       httpOnly: true, // Helps prevent XSS
-      secure: true, // Ensures cookie is sent over HTTPS
+      secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS
       sameSite: 'Strict', // Prevents CSRF
       maxAge: 15 * 60 * 1000 // 15 minutes
     });
@@ -48,7 +48,7 @@ export const loginRecallers = async (req, res) => {
     // Set the refresh token in a cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true, // Helps prevent XSS
-      secure: true, // Ensures cookie is sent over HTTPS
+      secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS
       sameSite: 'Strict', // Prevents CSRF
       maxAge: 1000 * 24 * 60 * 60 * 1000 // 1000 days
     });
@@ -57,7 +57,7 @@ export const loginRecallers = async (req, res) => {
     res.status(200).json({ 
       message: 'Login successful', 
       user: {
-        phone: user.phone,
+        phone: reseller.phone,
       }
     });
 
@@ -211,4 +211,19 @@ export const ProductPageView = async (req, res) => {
     }
   };
   
+  export const prevOrdersOut = async (req, res) => {
+    try {
+      const resellerId = req.user.id; // Assuming you have the reseller ID in req.user from the middleware
+      const recentOrders = await Order.find({ 'reseller.id': resellerId })
+        .sort({ createdAt: -1 })
   
+      const formattedOrders = recentOrders.map(order => ({
+        date: order.createdAt.toISOString().split('T')[0], // Format the date as YYYY-MM-DD
+        productCount: order.products.length,
+      }));
+      res.status(200).json({ orders: formattedOrders });
+    } catch (error) {
+      console.error('Error fetching recent orders:', error);
+      res.status(500).json({ message: 'Server error. Could not fetch recent orders.' });
+    }
+  };
