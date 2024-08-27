@@ -9,6 +9,7 @@ import path from "path";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import Order from "../models/order.js";
 
 import {
   generateAccessToken,

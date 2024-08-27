@@ -1,7 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import {
-  requestOTP,
+  requestOTP, 
   verifyOTPAndLogin,
   updateacc,
   logout,
@@ -11,7 +11,8 @@ import {
   deleteproduct,
   addproduct,
   Dashboard,
-  Resellers,bulkUploadProducts,
+  Resellers,
+  bulkUploadProducts,
   ProductPageView,
   addUser,
   verifyAdmin,
@@ -26,8 +27,8 @@ const upload = multer({ storage });
 router.post("/request-otp", requestOTP);
 router.post("/verify-otp", verifyOTPAndLogin);
 
-router.post('/bulk-upload', upload.single('file'), bulkUploadProducts)
-router.get('/verify-admin',verifyAdmin)
+router.post("/bulk-upload", upload.single("file"), bulkUploadProducts);
+router.get("/verify-admin", verifyAdmin);
 // Apply token verification middleware globally for the routes below
 router.use(verifyToken);
 // Routes that require token verification
@@ -35,7 +36,6 @@ router.post("/logout", logout);
 router.get("/", Dashboard);
 router.get("/resellers", Resellers);
 router.get("/products", ProductPageView);
-
 router.get("/ordergen", xlsreportgen);
 
 router.post("/adduser", addUser);

@@ -3,6 +3,7 @@ import Reseller from '../models/reseller.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/tokenGen.js';
 import Product from "../models/product.js";
 import Order from '../models/order.js';
+import moment from 'moment';
 
 export const loginRecallers = async (req, res) => {
   try {
@@ -133,11 +134,19 @@ export const ProductPageView = async (req, res) => {
   // Function to create and save an order
   export const submitorder = async (req, res) => {
     try {
-      const  products  = req.body;
-      
-      const {phone}  = req.user
-      
-      // Find the reseller by ID
+      const products = req.body;
+      const { phone } = req.user;
+  
+      // Check if the current time is between 8 PM and 12 PM
+      const currentTime = moment();
+      const startTime = moment().set({ hour: 20, minute: 0 });
+      const endTime = moment().set({ hour: 23, minute: 59 });
+  
+      if (!currentTime.isBetween(startTime, endTime)) {
+        return res.status(403).json({ message: 'Orders can only be placed between 8 PM and 12 PM' });
+      }
+  
+      // Find the reseller by phone
       const reseller = await Reseller.findOne({ phone });
       if (!reseller) {
         return res.status(404).json({ message: 'Reseller not found' });
@@ -152,20 +161,15 @@ export const ProductPageView = async (req, res) => {
           }
   
           // Extract the selected sizes and quantities
-          const selectedSizes = Object.keys(item.orderSizes).reduce(
-            (acc, size) => {
-              if (item.orderSizes[size].quantity > 0) {
-                console.log(item.orderSizes[size].quantity);
-                
-                acc.push({
-                  size: size,
-                  quantity: item.orderSizes[size].quantity,
-                });
-              }
-              return acc;
-            },
-            []
-          );
+          const selectedSizes = Object.keys(item.orderSizes).reduce((acc, size) => {
+            if (item.orderSizes[size].quantity > 0) {
+              acc.push({
+                size: size,
+                quantity: item.orderSizes[size].quantity,
+              });
+            }
+            return acc;
+          }, []);
   
           return {
             id: product._id,
@@ -174,19 +178,33 @@ export const ProductPageView = async (req, res) => {
         })
       );
   
-      // Create the order
-      const order = new Order({
-        reseller: {
-          id: reseller._id,
-          name: reseller.name,
-        },
-        products: orderProducts,
+      // Check if there is an existing order within the time frame
+      const existingOrder = await Order.findOne({
+        'reseller.id': reseller._id,
+        createdAt: { $gte: startTime.toDate(), $lt: endTime.toDate() },
       });
   
-      // Save the order to the database
-      await order.save();
+      if (existingOrder) {
+        // Concatenate the new products with the existing order
+        existingOrder.products = existingOrder.products.concat(orderProducts);
+        await existingOrder.save();
   
-      res.status(201).json({ message: 'Order placed successfully', order });
+        res.status(200).json({ message: 'Order updated successfully', order: existingOrder });
+      } else {
+        // Create a new order
+        const order = new Order({
+          reseller: {
+            id: reseller._id,
+            name: reseller.name,
+          },
+          products: orderProducts,
+        });
+  
+        // Save the order to the database
+        await order.save();
+  
+        res.status(201).json({ message: 'Order placed successfully', order });
+      }
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Server error', error: error.message });
