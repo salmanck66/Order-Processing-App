@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Table } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { fetchOrders } from '../../Api/getApi';
 
 const columns = [
   {
@@ -103,21 +104,20 @@ const onChange = (pagination, filters, sorter, extra) => {
 const DateByGroup = () => {
   const navigate = useNavigate();
 
-  // Optional: Fetch data if necessary
-//   useEffect(() => {
-//     const fetchPreviousOrders = async () => {
-//       try {
-//         const response = await fetch('/api/previous-orders'); // Replace with your API endpoint
-//         const data = await response.json();
-//         console.log('Fetched data:', data);
-//         // Set data to state if needed
-//       } catch (error) {
-//         console.error('Error fetching data:', error);
-//       }
-//     };
+  useEffect(() => {
+    const fetchPreviousOrders = async () => {
+      try {
+        const response =  fetchOrders()
+        const data = await response;
+        console.log('Fetched data:', data);
+        // Set data to state if needed
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
 
-//     fetchPreviousOrders();
-//   }, []);
+    fetchPreviousOrders();
+  }, []);
 
   // Handle row click to navigate to a different page
   const onRowClick = (record) => {
