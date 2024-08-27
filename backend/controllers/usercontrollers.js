@@ -239,33 +239,16 @@ export const ProductPageView = async (req, res) => {
   export const eachOrder = async (req, res) => {
     try {
       const { orderId } = req.params;
-      const recaller = await Reseller.findOne({ phone });
   
-      if (!recaller) {
-        return res.status(404).json({ message: 'Reseller not found' });
-      }
-  
+
       // Find orders for the reseller and populate product details
       const orders = await Order.findById(orderId)
         .populate('products.id')  // Populate product details using the 'id' reference
         .sort({ createdAt: -1 });
-  
-      // Format the order details
-      const orderDetails = orders.map(order => ({
-        date: order.createdAt.toISOString().split('T')[0], // Format the date as YYYY-MM-DD
-        products: order.products.map(product => ({
-          productName: product.id.name,  // Product name
-          version: product.id.version,   // Product version
-          sizes: product.sizes.map(size => ({
-            size: size.size,
-            quantity: size.quantity,
-          })),
-          price: product.id.price,       // Product price
-        })),
-      }));
-  
-      // Send the response with the formatted order details
-      res.status(200).json({ orders: orderDetails });
+      console.log(orders);
+      
+
+      res.status(200).json({ orders });
     } catch (error) {
       console.error('Error fetching each order:', error);
       res.status(500).json({ message: 'Server error. Could not fetch each order.' });
