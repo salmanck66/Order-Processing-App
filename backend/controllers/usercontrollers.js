@@ -135,19 +135,23 @@ export const ProductPageView = async (req, res) => {
   export const submitorder = async (req, res) => {
     try {
       const products = req.body;
-      const { phone } = req.user;
+      const { phone } = req.user;  
   
-      // Check if the current time is between 8 PM and 12 PM
+      // Check if the current time is between 8 PM and 12 AM
       const currentTime = moment();
-      const startTime = moment().set({ hour: 20, minute: 0 });
-      const endTime = moment().set({ hour: 23, minute: 59 });
+      const startTime = moment().set({ hour: 20, minute: 0, second: 0 });
+      const endTime = moment().add(1, 'day').set({ hour: 0, minute: 0, second: 0 });
   
-      if (currentTime.isBetween(startTime, endTime)) {
-        return res.status(403).json({ message: 'Orders can only be placed between 8 PM and 12 PM' });
-      }
-  
+      // if (!currentTime.isBetween(startTime, endTime)) {
+      //   return res.status(403).json({ message: 'Orders can only be placed between 8 PM and 12 AM.' });
+      // }
+      console.log("Phone number:", phone);
       // Find the reseller by phone
       const reseller = await Reseller.findOne({ phone });
+      
+      // Log the reseller info for debugging
+      console.log("Reseller found:", reseller);
+  
       if (!reseller) {
         return res.status(404).json({ message: 'Reseller not found' });
       }
@@ -178,18 +182,19 @@ export const ProductPageView = async (req, res) => {
         })
       );
   
-      // Check if there is an existing order within the time frame
+      // Check if there is an existing order within the same time frame on the current day
       const existingOrder = await Order.findOne({
         'reseller.id': reseller._id,
         createdAt: { $gte: startTime.toDate(), $lt: endTime.toDate() },
       });
+      console.log(existingOrder)
   
       if (existingOrder) {
         // Concatenate the new products with the existing order
         existingOrder.products = existingOrder.products.concat(orderProducts);
         await existingOrder.save();
   
-        res.status(200).json({ message: 'Order updated successfully', order: existingOrder });
+        return res.status(200).json({ message: 'Order updated successfully', order: existingOrder });
       } else {
         // Create a new order
         const order = new Order({
@@ -203,25 +208,28 @@ export const ProductPageView = async (req, res) => {
         // Save the order to the database
         await order.save();
   
-        res.status(201).json({ message: 'Order placed successfully', order });
+        return res.status(201).json({ message: 'Order placed successfully', order });
       }
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: 'Server error', error: error.message });
+      return res.status(500).json({ message: 'Server error', error: error.message });
     }
   };
+  
+  
   
   export const prevOrdersOut = async (req, res) => {
     try {
       const { phone } = req.user;
       const recaller = await   Reseller.findOne({phone})
-      console.log(recaller,);
+      console.log(recaller);
       
        // Assuming you have the reseller ID in req.user from the middleware
       const recentOrders = await Order.find({ 'reseller.id': recaller._id })
         .sort({ createdAt: -1 })
   
       const formattedOrders = recentOrders.map(order => ({
+        id:recaller._id,
         date: order.createdAt.toISOString().split('T')[0], // Format the date as YYYY-MM-DD
         productCount: order.products.length,
       }));
@@ -231,3 +239,5 @@ export const ProductPageView = async (req, res) => {
       res.status(500).json({ message: 'Server error. Could not fetch recent orders.' });
     }
   };
+
+
