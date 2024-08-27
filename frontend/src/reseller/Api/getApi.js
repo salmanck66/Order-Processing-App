@@ -13,9 +13,9 @@ export const fetchOrders = async ( ) => {
     }
 };
 
-export const fetchOrder = async ( ) => {
+export const fetchOrder = async (orderId ) => {
     try {
-        const response = await userInstance.get(`/fetchOrder`, );
+        const response = await userInstance.get(`/eachorder/${orderId}`, );
         
         return response.data;
     } catch (error) {
