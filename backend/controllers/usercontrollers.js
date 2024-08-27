@@ -136,7 +136,7 @@ export const ProductPageView = async (req, res) => {
       const  products  = req.body;
       
       const {phone}  = req.user
-
+      
       // Find the reseller by ID
       const reseller = await Reseller.findOne({ phone });
       if (!reseller) {
@@ -169,8 +169,6 @@ export const ProductPageView = async (req, res) => {
   
           return {
             id: product._id,
-            name: product.name,
-            image: product.images[0].url, // Assuming you want the first image in the array
             sizes: selectedSizes,
           };
         })
