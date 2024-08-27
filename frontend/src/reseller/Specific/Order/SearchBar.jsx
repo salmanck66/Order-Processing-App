@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { AutoComplete } from 'antd';
-import { IoIosSearch } from 'react-icons/io';
-import { SearchProducts } from '../../Api/PostApi';
-import { useDispatch, useSelector } from 'react-redux';
-import { addOrder } from '../../Redux/ordersSlice';
-import { notification } from 'antd';
+import React, { useState, useEffect, useRef } from "react";
+import { AutoComplete, Button } from "antd";
+import { IoIosAdd, IoIosSearch } from "react-icons/io";
+import { SearchProducts } from "../../Api/PostApi";
+import { useDispatch, useSelector } from "react-redux";
+import { addOrder } from "../../Redux/ordersSlice";
+import { notification } from "antd";
+import { Link } from "react-router-dom";
 
 const SearchBar = () => {
-  const orders = useSelector(state => state.orders.orders);
+  const orders = useSelector((state) => state.orders.orders);
   const dispatch = useDispatch();
   const [options, setOptions] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const debounceTimeout = useRef(null);
 
   const handleSearch = (inputValue) => {
@@ -19,16 +20,15 @@ const SearchBar = () => {
 
   const addToOrder = (product, index) => {
     const productExists = orders.some((item) => item._id === product._id);
-  
+
     if (productExists) {
       notification.info({
         message: `Product Already Added`,
         description: ` ${product.name} is already in your order.`,
-        placement: 'topRight',
+        placement: "topRight",
       });
     } else {
       dispatch(addOrder(product)); // Dispatch the product details to the Redux store
-      
     }
   };
 
@@ -66,7 +66,7 @@ const SearchBar = () => {
       try {
         const products = await SearchProducts(searchTerm); // Use the latest searchTerm
         console.log(products.products);
-        const formattedResponse = products.products.map(product => ({
+        const formattedResponse = products.products.map((product) => ({
           label: product.name,
           value: product.edition,
           image: product?.images[0]?.url,
@@ -75,7 +75,7 @@ const SearchBar = () => {
         }));
         setOptions(formattedResponse);
       } catch (error) {
-        console.error('Error fetching search results:', error);
+        console.error("Error fetching search results:", error);
       }
     }, 300); // 300ms debounce time
 
@@ -85,19 +85,20 @@ const SearchBar = () => {
   }, [searchTerm]); // Only run when searchTerm changes
 
   return (
-    <div className="w-full flex justify-end">
+    <div className="w-full flex gap-2 justify-end  h-full items-center ">
       <AutoComplete
         style={{ width: 400 }}
-        dropdownRender={(menu) => (
-          <CustomDropdown options={options} />
-        )}
+        dropdownRender={(menu) => <CustomDropdown options={options} />}
         options={options} // Pass options here to make sure AutoComplete knows about them
         placeholder="Search Items..."
         onChange={handleSearch} // Use onChange to trigger handleSearch
         value={searchTerm} // Set the value for AutoComplete
         className="w-full"
       />
-      <IoIosSearch className="text-3xl border bg-white rounded-md ml-2" />
+      <IoIosSearch className="text-3xl border hidden md:block bg-white rounded-md" />
+      <Link to={'/reseller/previous-orders'}>
+        <Button>Previous <h1 className=" hidden md:block ">Orders</h1></Button>{" "}
+      </Link>
     </div>
   );
 };
