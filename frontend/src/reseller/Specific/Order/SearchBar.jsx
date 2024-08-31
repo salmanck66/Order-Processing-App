@@ -7,8 +7,8 @@ import { addOrder } from "../../Redux/ordersSlice";
 import { notification } from "antd";
 import { Link } from "react-router-dom";
 
-const SearchBar = () => {
-  const orders = useSelector((state) => state.orders.orders);
+const SearchBar = ({customerId}) => {
+  const {customer} = useSelector((state) => state.orders);
   const dispatch = useDispatch();
   const [options, setOptions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,9 +18,14 @@ const SearchBar = () => {
     setSearchTerm(inputValue); // Update the search term state
   };
 
-  const addToOrder = (product, index) => {
-    const productExists = orders.some((item) => item._id === product._id);
+  const addToOrder = (product, index, ) => {
+    const orders = customer.filter((item) => item._id === customerId);
+    const productExists = orders[0]?.orders?.some((order) => order._id === product._id) 
+      console.log('hai');
+      console.log('orders', orders);
+      console.log('productExists', productExists);
 
+      
     if (productExists) {
       notification.info({
         message: `Product Already Added`,
@@ -28,7 +33,9 @@ const SearchBar = () => {
         placement: "topRight",
       });
     } else {
-      dispatch(addOrder(product)); // Dispatch the product details to the Redux store
+      console.log(product);
+      
+      dispatch(addOrder({product, customerId, sum: 0})); // Dispatch the product details to the Redux store
     }
   };
 
@@ -37,7 +44,7 @@ const SearchBar = () => {
       {options.map((option, index) => (
         <li
           key={index}
-          onClick={() => addToOrder(option.product, index)} // Pass the selected product and index to addToOrder
+          onClick={() => addToOrder(option.product, index, customerId )} // Pass the selected product and index to addToOrder
           className="p-2 flex items-center gap-2 hover:bg-gray-200 rounded-lg cursor-pointer"
         >
           <img
@@ -71,6 +78,8 @@ const SearchBar = () => {
           value: product.edition,
           image: product?.images[0]?.url,
           product: product,
+          orderSize: {},
+           
           _id: product._id,
         }));
         setOptions(formattedResponse);
@@ -95,10 +104,7 @@ const SearchBar = () => {
         value={searchTerm} // Set the value for AutoComplete
         className="w-full"
       />
-      <IoIosSearch className="text-3xl border hidden md:block bg-white rounded-md" />
-      <Link to={'/reseller/previous-orders'}>
-        <Button>Previous <h1 className=" hidden md:block ">Orders</h1></Button>{" "}
-      </Link>
+     
     </div>
   );
 };

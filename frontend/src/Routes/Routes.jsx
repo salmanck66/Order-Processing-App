@@ -15,6 +15,7 @@ import ResellerAccount from "../reseller/Pages/ResellerAccount";
 import ResellerOrders from "../reseller/Pages/ResellerOrders";
 import PreviousOrder from "../reseller/Pages/PreviousOrder";
 import OrderDetailByDate from "../reseller/Pages/OrderDetailByDate";
+import CustomerDetails from "../reseller/Specific/Order/CustomerDetails";
 
 export const Routes = createBrowserRouter([
   {
@@ -87,6 +88,10 @@ export const Routes = createBrowserRouter([
             path: "previous-order/:orderId",
             element: <OrderDetailByDate />,
           },
+          {
+            path: 'customer-details/:customerId',
+            element: <CustomerDetails/>,
+          }
         ],
       },
     ],
