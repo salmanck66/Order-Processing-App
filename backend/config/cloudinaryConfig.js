@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
+import multer from "multer";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -11,8 +12,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Multer storage engine using Cloudinary, allowing multiple formats
-export const storage = new CloudinaryStorage({
+// Multer storage engine using Cloudinary
+const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "products",
@@ -23,3 +24,9 @@ export const storage = new CloudinaryStorage({
     public_id: (req, file) => file.originalname.split(".")[0], // Optional: use original filename
   },
 });
+
+// Create the upload middleware
+const upload = multer({ storage: storage });
+
+// Export both storage and upload
+export { storage, upload };

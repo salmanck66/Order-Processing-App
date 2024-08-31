@@ -4,6 +4,8 @@ import { generateAccessToken, generateRefreshToken } from '../utils/tokenGen.js'
 import Product from "../models/product.js";
 import Order from '../models/order.js';
 import moment from 'moment';
+import multer from 'multer';
+const upload = multer({ storage: multer.memoryStorage() });
 
 export const loginResellers = async (req, res) => {
   try {
@@ -130,10 +132,13 @@ export const ProductPageView = async (req, res) => {
   };
 
   // Function to create and save an order
+
+
   export const submitorder = async (req, res) => {
     try {
-      const products = req.body;
+      const products = req.body.products;
       const { phone } = req.user;
+      const pdfFile = req.file; // Get the PDF file from the request
   
       // Define the order placement time window
       const currentTime = moment();
@@ -146,7 +151,6 @@ export const ProductPageView = async (req, res) => {
       }
   
       const reseller = await Reseller.findOne({ phone });
-  
       if (!reseller) {
         return res.status(404).json({ message: 'Reseller not found' });
       }
@@ -159,15 +163,18 @@ export const ProductPageView = async (req, res) => {
             throw new Error(`Product with ID ${item.productId} not found`);
           }
   
-          const selectedSizes = Object.keys(item.orderSizes).reduce((acc, size) => {
-            if (item.orderSizes[size].quantity > 0) {
-              acc.push({
-                size: size,
-                quantity: item.orderSizes[size].quantity,
-              });
-            }
-            return acc;
-          }, []);
+          const selectedSizes = Object.keys(item.orderSizes).reduce(
+            (acc, size) => {
+              if (item.orderSizes[size].quantity > 0) {
+                acc.push({
+                  size: size,
+                  quantity: item.orderSizes[size].quantity,
+                });
+              }
+              return acc;
+            },
+            []
+          );
   
           return {
             id: product._id,
@@ -177,7 +184,27 @@ export const ProductPageView = async (req, res) => {
       );
   
       // Determine the order's effective date (next day if placed between 8 PM and 11:59 AM)
-      const orderDate = currentTime.isBetween(startTime, endTime) ? moment().add(1, 'day').startOf('day').toDate() : moment().startOf('day').toDate();
+      const orderDate = currentTime.isBetween(startTime, endTime)
+        ? moment().add(1, 'day').startOf('day').toDate()
+        : moment().startOf('day').toDate();
+  
+      // Upload the PDF to Cloudinary if a file is provided
+      let pdfUrl = null;
+      if (pdfFile) {
+        pdfUrl = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { resource_type: 'raw' },
+            (error, result) => {
+              if (error) {
+                return reject(error);
+              }
+              resolve(result.secure_url);
+            }
+          );
+  
+          pdfFile.stream.pipe(uploadStream);
+        });
+      }
   
       // Check if there is an existing order for the effective date
       const existingOrder = await Order.findOne({
@@ -188,6 +215,9 @@ export const ProductPageView = async (req, res) => {
       if (existingOrder) {
         // Update the existing order
         existingOrder.products = existingOrder.products.concat(orderProducts);
+        if (pdfUrl) {
+          existingOrder.pdfUrl = pdfUrl; // Update the PDF URL
+        }
         await existingOrder.save();
   
         return res.status(200).json({ message: 'Order updated successfully', order: existingOrder });
@@ -200,6 +230,7 @@ export const ProductPageView = async (req, res) => {
           },
           products: orderProducts,
           createdAt: orderDate, // Set the order's creation date to the effective date
+          pdfUrl: pdfUrl, // Set the PDF URL
         });
   
         await order.save();

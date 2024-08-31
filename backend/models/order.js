@@ -12,27 +12,39 @@ const orderSchema = new mongoose.Schema({
       required: true,
     },
   },
-  products: [
+  customers: [
     {
-      id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
+      name: {
+        type: String,
         required: true,
       },
-      sizes: [
+      products: [
         {
-          size: {
-            type: String,
-            enum: ['S', 'M', 'L', 'XL', 'XXL'],
+          id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product',
             required: true,
           },
-          quantity: {
-            type: Number,
-            required: true,
-            min: 1,
-          },
+          sizes: [
+            {
+              size: {
+                type: String,
+                enum: ['S', 'M', 'L', 'XL', 'XXL'],
+                required: true,
+              },
+              quantity: {
+                type: Number,
+                required: true,
+                min: 1,
+              },
+            },
+          ],
         },
       ],
+      label: {
+        type: String,
+        required: true,
+      },
     },
   ],
   createdAt: {
@@ -41,5 +53,5 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
-const Order = mongoose.model('Orders', orderSchema);
+const Order = mongoose.model('Order', orderSchema);
 export default Order;
