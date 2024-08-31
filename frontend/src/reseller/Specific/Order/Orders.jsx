@@ -21,16 +21,37 @@ const Orders = () => {
 
     try {
       const response = await submitorder(orderDetails);
-      notification.success({
-        message: "Order Submitted",
-        description: "Your order has been successfully submitted!",
-      });
+
+      if (response.status === 201) {
+        notification.success({
+          message: "Order Placed",
+          description: "Your order has been successfully placed!",
+        });
+      } else if (response.status === 200) {
+        notification.success({
+          message: "Order Updated",
+          description: "Your order has been successfully updated!",
+        });
+      }
+
       dispatch(clearOrders());
     } catch (error) {
-      notification.error({
-        message: "Submission Failed",
-        description: "There was an error submitting your order. Please try again.",
-      });
+      if (error.response && error.response.status === 403) {
+        notification.error({
+          message: "Order Time Restriction",
+          description: "Orders can only be placed between 8 PM and 12 PM.",
+        });
+      } else if (error.response && error.response.status === 404) {
+        notification.error({
+          message: "Reseller Not Found",
+          description: "Reseller not found. Please check your details and try again.",
+        });
+      } else {
+        notification.error({
+          message: "Submission Failed",
+          description: error.message || "There was an error submitting your order. Please try again.",
+        });
+      }
       console.error("Submission error:", error);
     }
   };
@@ -38,13 +59,13 @@ const Orders = () => {
   return (
     <div className="flex flex-col lg:flex-row gap-4 sm:p-5">
       <div className="flex flex-col flex-grow my-2">
-        {orders.length > 0 ? orders.map((order,index) => (
-          <Order key={index} product={order} />
-        )): (
-          <div className="text-center text-lg font-bold text-gray-500  justify-center bg-white shadow-lg  rounded-md flex flex-col">
+        {orders.length > 0 ? orders.map((order, index) => (
+          <Order key={index} index={index} product={order} />
+        )) : (
+          <div className="text-center text-lg font-bold text-gray-500 justify-center bg-white shadow-lg rounded-md flex flex-col">
             Your cart is empty!
-            <img src="https://www.englishbrowne.com/front/assets/images/cart-empty.png" className=" max-h-[400px] object-cover " alt="" />
-            </div>
+            <img src="https://www.englishbrowne.com/front/assets/images/cart-empty.png" className="max-h-[400px] object-cover" alt="Empty Cart" />
+          </div>
         )}
       </div>
       <div className="bg-white shadow-lg p-4 md:p-5 w-full md:w-80 h-fit sticky top-4 rounded-lg">
