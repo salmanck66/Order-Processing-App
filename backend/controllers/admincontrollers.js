@@ -408,3 +408,12 @@ export const updateacc = async (req, res) => {
     res.status(500).json({ message: "Failed to update account." });
   }
 };
+
+
+ export const orderstoday = async(req,res)=>
+{
+  const ordersNotCompleted = await Order.find({status:false})
+  const orderspending = await Order.find().length-ordersNotCompleted.length
+  const orderTotalLength = await Order.find().length
+  return res.status(200).json({ordersNotCompleted,orderspending,orderTotalLength})
+}

@@ -23,7 +23,7 @@ export const verifyAdmin = async (req, res) => {
       if (refreshToken) {
   
         const decodedRefreshToken = verifyRefreshToken(refreshToken);
-        const admin = await Admin.findOne({ refreshToken: refreshToken });
+        const admin = await Admin.findOne({ refreshTokens: refreshToken });
         if (!admin) {
           return res.status(401).json({ message: 'Invalid Refresh token' });
         }

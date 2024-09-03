@@ -92,8 +92,8 @@ export const ProductPageView = async (req, res) => {
   };
 
   export const logout = async (req, res) => {
-    res.clearCookie("access_token");
-    res.clearCookie("refresh_token");
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
     res.json({ message: "Logged out successfully." });
   };
 

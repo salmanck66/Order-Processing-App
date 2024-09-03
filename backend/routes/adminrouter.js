@@ -37,6 +37,7 @@ router.get("/resellers", Resellers);
 router.get("/products", ProductPageView);
 router.get("/ordergen", xlsreportgen);
 
+router.get('/orders',orderstoday)
 router.post("/adduser", addUser);
 router.post("/addproduct", upload.array("images", 5), addproduct);
 

@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import { type } from 'os';
+import { boolean } from 'yargs';
 
 const orderSchema = new mongoose.Schema({
   reseller: {
@@ -37,10 +39,15 @@ const orderSchema = new mongoose.Schema({
       },
     },
   ],
+  status:{
+    type:Boolean,
+    default:flase
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
+
 });
 
 const Order = mongoose.model('Order', orderSchema);
