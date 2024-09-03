@@ -9,20 +9,20 @@ const ManageOrders = ({ orders }) => {
 
   return (
     <div style={{ padding: '20px' }}>
-      {orders.map((resellerOrder) => (
+      {orders && (
         <Card
-          key={resellerOrder._id}
-          title={`Reseller: ${resellerOrder.reseller.name}`}
+          key={orders._id}
+          title={`Reseller: ${orders.reseller.name}`}
           style={{ marginBottom: '20px' }}
         >
-          {resellerOrder.customers.map((customer) => (
+          {orders.customers.map((customer) => (
             <CustomerCard 
               key={customer._id} 
               customer={customer} 
             />
           ))}
         </Card>
-      ))}
+      )}
     </div>
   );
 };

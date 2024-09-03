@@ -5,12 +5,11 @@ import { GoFileSubmodule } from "react-icons/go";
 
 const CustomerCard = ({ customer }) => {
   const [selectedSizes, setSelectedSizes] = useState(() => {
-    // Initialize all sizes as checked (true) initially
     const initialSizes = {};
     customer.orders.forEach((order) => {
-      initialSizes[order.productId] = {};
-      Object.keys(order.orderSizes).forEach((size) => {
-        initialSizes[order.productId][size] = true;
+      initialSizes[order.productId._id] = {};
+      order.orderSizes.forEach(({ size }) => {
+        initialSizes[order.productId._id][size] = true;
       });
     });
     return initialSizes;
@@ -20,6 +19,7 @@ const CustomerCard = ({ customer }) => {
     console.log(`Order for customer ${customerId} is marked as done.`);
     message.success('Order marked as done successfully!');
     // Add any other logic here (e.g., update the order status in the backend)
+    console.log(customer);
   };
 
   const handleSizeChange = (productId, size, checked) => {
@@ -33,7 +33,7 @@ const CustomerCard = ({ customer }) => {
   };
 
   const renderSizesWithCheckboxes = (sizes, productId) =>
-    Object.entries(sizes).map(([size, quantity]) => (
+    sizes.map(({ size, quantity }) => (
       <div key={size}>
         <Checkbox
           checked={selectedSizes[productId]?.[size] || false}
@@ -46,15 +46,15 @@ const CustomerCard = ({ customer }) => {
 
   const columns = [
     {
-      title: 'Product ID',
-      dataIndex: 'productId',
-      key: 'productId',
+      title: 'Product Name',
+      dataIndex: ['productId', 'name'],
+      key: 'productId.name',
     },
     {
       title: 'Sizes & Quantities',
       dataIndex: 'orderSizes',
       key: 'orderSizes',
-      render: (sizes, record) => renderSizesWithCheckboxes(sizes, record.productId),
+      render: (sizes, record) => renderSizesWithCheckboxes(sizes, record.productId._id),
     },
   ];
 
