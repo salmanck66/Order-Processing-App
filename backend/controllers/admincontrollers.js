@@ -412,7 +412,7 @@ export const updateacc = async (req, res) => {
 
 export const orderstoday = async (req, res) => {
   try {
-    const ordersNotCompleted = await Order.find({ status: false })
+    const ordersNotCompleted = await Order.findOne({ status: false })
       .populate('customers.orders.productId', 'name') // Populate product name
       .exec();
     
