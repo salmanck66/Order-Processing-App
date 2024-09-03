@@ -65,10 +65,6 @@ export const Routes = createBrowserRouter([
         element: <ProtectedRouteReseller />,
         children: [
           {
-            path: "",
-            element: <ResellerDashboard />,
-          },
-          {
             path: "orders",
             element: <ResellerOrders />,
           },

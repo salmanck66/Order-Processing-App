@@ -3,8 +3,9 @@ import { FaRegUser } from 'react-icons/fa';
 import { Popconfirm, Button, notification } from 'antd'; // Import notification from antd
 import PasswordResetModal from '../Specific/Account/PasswordResetModal';
 import { logout } from '../Api/getApi'; // Ensure this is the correct path
-
+import { useNavigate } from 'react-router-dom';
 export const Profile = ({ profile }) => {
+    const navigate = useNavigate()
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const showModal = () => {
@@ -23,6 +24,7 @@ export const Profile = ({ profile }) => {
         description: 'You have been logged out successfully.',
       });
       console.log('Logged out');
+      navigate('/')
       // Additional logic to handle after successful logout (e.g., redirecting)
     } catch (error) {
       notification.error({
