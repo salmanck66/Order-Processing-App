@@ -15,6 +15,7 @@ import {
   bulkUploadProducts,
   ProductPageView,
   addUser,
+  orderstoday,
 } from "../controllers/admincontrollers.js";
 import { verifyAdmin } from "../middlewares/authAdmin.js";
 import { storage } from "../config/cloudinaryConfig.js"; // Moved Cloudinary config to a separate file
@@ -29,10 +30,11 @@ router.post("/verify-otp", verifyOTPAndLogin);
 router.post("/bulk-upload", upload.single("file"), bulkUploadProducts);
 
 // Apply token verification middleware globally for the routes below
-router.use(verifyAdmin);
 // Routes that require token verification
 router.post("/logout", logout);
 router.get("/", Dashboard);
+router.get("/verify-admin", verifyAdmin);
+
 router.get("/resellers", Resellers);
 router.get("/products", ProductPageView);
 router.get("/ordergen", xlsreportgen);
