@@ -8,12 +8,9 @@ const FilterBox = ({
   setSelectedEditions,
   selectedSizes,
   setSelectedSizes,
-  priceRange,
-  setPriceRange,
-  stockOnly,
-  setStockOnly,
+
 }) => {
-  const editions = ["Fan Version", "Player Version", "First Copy Set"];
+  const editions = ["Fan Version", "Player Version", "First Copy Set", 'Retro', "Other"];
   const sizes = ["S", "M", "L", "XL", "XXL"];
 
   const handleEditionChange = (checkedValues) => {
@@ -24,13 +21,7 @@ const FilterBox = ({
     setSelectedSizes(checkedValues);
   };
 
-  const handlePriceChange = (value) => {
-    setPriceRange(value);
-  };
 
-  const handleStockChange = (e) => {
-    setStockOnly(e.target.checked);
-  };
 
   return (
     <div className="p-4 shadow-2xl bg-accent rounded-lg my-4 mx-2 md:my-10 md:mx-4">
@@ -92,7 +83,7 @@ const FilterBox = ({
         <Checkbox.Group
           options={sizes}
           value={selectedSizes}
-          className="grid grid-cols-1 gap-2"
+          className="grid grid-cols-1 gap-2 "
           onChange={handleSizeChange}
         />
 
