@@ -134,114 +134,85 @@ export const ProductPageView = async (req, res) => {
   // Function to create and save an order
 
 
-  export const submitorder = async (req, res) => {
-    try {
-      const products = req.body.products;
-      const { phone } = req.user;
-      const pdfFile = req.file; // Get the PDF file from the request
   
-      // Define the order placement time window
-      const currentTime = moment();
-      const startTime = moment().set({ hour: 20, minute: 0, second: 0 }); // 8 PM today
-      const endTime = moment().add(1, 'day').set({ hour: 11, minute: 59, second: 59 }); // 11:59 AM the next day
   
-      // Check if the current time is within the allowed window
-      if (!currentTime.isBetween(startTime, endTime)) {
-        return res.status(403).json({ message: 'Orders can only be placed between 8 PM and 12 PM.' });
-      }
-  
-      const reseller = await Reseller.findOne({ phone });
-      if (!reseller) {
-        return res.status(404).json({ message: 'Reseller not found' });
-      }
-  
-      // Prepare the products array for the order
-      const orderProducts = await Promise.all(
-        products.map(async (item) => {
-          const product = await Product.findById(item.productId);
-          if (!product) {
-            throw new Error(`Product with ID ${item.productId} not found`);
-          }
-  
-          const selectedSizes = Object.keys(item.orderSizes).reduce(
-            (acc, size) => {
-              if (item.orderSizes[size].quantity > 0) {
-                acc.push({
-                  size: size,
-                  quantity: item.orderSizes[size].quantity,
-                });
-              }
-              return acc;
-            },
-            []
-          );
-  
-          return {
-            id: product._id,
-            sizes: selectedSizes,
-          };
-        })
-      );
-  
-      // Determine the order's effective date (next day if placed between 8 PM and 11:59 AM)
-      const orderDate = currentTime.isBetween(startTime, endTime)
-        ? moment().add(1, 'day').startOf('day').toDate()
-        : moment().startOf('day').toDate();
-  
-      // Upload the PDF to Cloudinary if a file is provided
-      let pdfUrl = null;
-      if (pdfFile) {
-        pdfUrl = await new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            { resource_type: 'raw' },
-            (error, result) => {
-              if (error) {
-                return reject(error);
-              }
-              resolve(result.secure_url);
-            }
-          );
-  
-          pdfFile.stream.pipe(uploadStream);
-        });
-      }
-  
-      // Check if there is an existing order for the effective date
-      const existingOrder = await Order.findOne({
-        'reseller.id': reseller._id,
-        createdAt: { $gte: orderDate },
-      });
-  
-      if (existingOrder) {
-        // Update the existing order
-        existingOrder.products = existingOrder.products.concat(orderProducts);
-        if (pdfUrl) {
-          existingOrder.pdfUrl = pdfUrl; // Update the PDF URL
-        }
-        await existingOrder.save();
-  
-        return res.status(200).json({ message: 'Order updated successfully', order: existingOrder });
-      } else {
-        // Create a new order for the effective date
-        const order = new Order({
-          reseller: {
-            id: reseller._id,
-            name: reseller.name,
-          },
-          products: orderProducts,
-          createdAt: orderDate, // Set the order's creation date to the effective date
-          pdfUrl: pdfUrl, // Set the PDF URL
-        });
-  
-        await order.save();
-  
-        return res.status(201).json({ message: 'Order placed successfully', order });
-      }
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Server error', error: error.message });
+
+export const submitorder = async (req, res) => {
+  try {
+    const data = req.body;
+    const { phone } = req.user;
+    const pdfFile = req.file; // Get the PDF file from the request
+
+    // Define the order placement time window
+    const currentTime = moment();
+    const startTime = moment().set({ hour: 20, minute: 0, second: 0 }); // 8 PM today
+    const endTime = moment().add(1, 'day').set({ hour: 11, minute: 59, second: 59 }); // 11:59 AM the next day
+
+    // Check if the current time is within the allowed window
+    if (currentTime.isBetween(startTime, endTime)) {
+      return res.status(403).json({ message: 'Orders can only be placed between 8 PM and 12 PM.' });
     }
-  };
+
+    // Find the reseller by phone number
+    const reseller = await Reseller.findOne({ phone });
+    if (!reseller) {
+      return res.status(404).json({ message: 'Reseller not found' });
+    }
+
+    // Define the order date
+    const orderDate = moment().startOf('day').toDate();
+
+    // Check if there's an existing order for the reseller today
+    let existingOrder = await Order.findOne({
+      'reseller.id': reseller._id,
+      createdAt: { $gte: orderDate },
+    });
+
+    if (existingOrder) {
+      data.forEach((product) => {
+        existingOrder.customers.push({
+          customerName: product.customerName,
+          label: pdfFile ? pdfFile.uid : 'No File',
+          orders: product.orders?.map(order => ({
+            productId: order._id,
+            orderSizes: order.orderSizes,
+          })),
+        });
+      });
+
+      await existingOrder.save();
+      return res.status(200).json({ message: 'Order updated successfully', order: existingOrder });
+    } else {
+      const customers = data.map(product => ({
+        customerName: product.customerName,
+        label: 'No File',
+        orders: product.orders?.map(order => ({
+          productId: order._id,
+          orderSizes: order.orderSizes,
+        })),
+      }));
+
+      const newOrder = new Order({
+        reseller: {
+          id: reseller._id,
+          name: reseller.name,
+        },
+        customers,
+        createdAt: orderDate,
+      });
+
+      await newOrder.save();
+      return res.status(200).json({ message: 'Order placed successfully', order: newOrder });
+    }
+  } catch (error) {
+    console.error('Error submitting order:', error);
+    return res.status(500).json({ message: 'An error occurred while submitting the order.' });
+  }
+};
+
+  
+  
+    
   
   
   
@@ -283,6 +254,30 @@ export const ProductPageView = async (req, res) => {
     } catch (error) {
       console.error('Error fetching each order:', error);
       res.status(500).json({ message: 'Server error. Could not fetch each order.' });
+    }
+  };
+  
+ export const fetchProfile = async (req, res) => {
+    try {
+      const { phone } = req.user;
+  
+      const reseller = await Reseller.findOne({ phone }).select('-password -refreshTokens');
+      if (!reseller) {
+        return res.status(404).json({ message: 'Reseller not found' });
+      }
+  
+      const orders = await Order.find({ 'reseller.id': reseller._id }).exec();
+      const customers = orders[0].customers
+      console.log(orders);
+      
+      return res.status(200).json({
+        reseller,
+        customers
+      });
+  
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Internal server error' });
     }
   };
   

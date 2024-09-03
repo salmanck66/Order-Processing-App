@@ -14,31 +14,21 @@ const orderSchema = new mongoose.Schema({
   },
   customers: [
     {
-      name: {
+      customerName:{
         type: String,
         required: true,
       },
-      products: [
+      orders: [
         {
-          id: {
+          productId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product',
             required: true,
           },
-          sizes: [
-            {
-              size: {
-                type: String,
-                enum: ['S', 'M', 'L', 'XL', 'XXL'],
-                required: true,
-              },
-              quantity: {
-                type: Number,
-                required: true,
-                min: 1,
-              },
-            },
-          ],
+          orderSizes: {
+            type: Map,
+            of: Number,
+            required: true,
+          },
         },
       ],
       label: {

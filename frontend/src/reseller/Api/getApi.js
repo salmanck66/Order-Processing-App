@@ -23,3 +23,14 @@ export const fetchOrder = async (orderId ) => {
         throw error;
     }
 };
+
+export const fetchProfile = async ( ) => {
+    try {
+        const response = await userInstance.get(`/fetchProfile/`, );
+        
+        return response.data;
+    } catch (error) {
+        console.error('Error searching products:', error);
+        throw error;
+    }
+};

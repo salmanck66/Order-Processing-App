@@ -50,10 +50,7 @@ const NavBar = () => {
                 </div>
                 
                 {/* User Info (Desktop Only) */}
-                <div className='hidden md:flex bg-secondary rounded-full items-center p-1'>
-                    <h2 className='ps-3 pe-2'>fahiz</h2>
-                    <Avatar size={'small'} />
-                </div>
+               
             </div>
 
             {/* Mobile Dropdown Menu */}
