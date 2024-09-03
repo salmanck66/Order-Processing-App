@@ -12,7 +12,7 @@ const SizeList = ({ sizes, productId, customerId, orderSizes = {} }) => {
     useEffect(() => {
         const initialSizeValues = Object.keys(sizes).reduce((acc, size) => ({
             ...acc,
-            [size]: orderSizes?.[size] || '' // Safely access orderSizes with optional chaining
+            [size]: orderSizes?.[size] || ''
         }), {});
         
         setSizeValues(initialSizeValues);
@@ -56,7 +56,7 @@ const SizeList = ({ sizes, productId, customerId, orderSizes = {} }) => {
                         className='w-fit col-span-4'
                         type="number"
                         placeholder="Value"
-                        // value={sizeValues[size]} // Show the corresponding size value
+                        value={sizeValues[size]} // Show the corresponding size value
                         onChange={handleInputChange(size)}
                     />
                 </div>
