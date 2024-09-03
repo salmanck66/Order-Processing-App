@@ -310,6 +310,7 @@ export const submitorder = async (req, res) => {
   
       // Fetch products based on the query
       const products = await Product.find(query);
+      console.log(query)
   
       // Respond with the filtered products
       res.status(200).json({
@@ -326,5 +327,8 @@ export const submitorder = async (req, res) => {
     }
   };
   
-  
+export const checkUser = async(req,res)=>
+{
+  res.status(200).json({"status":"success"})
+} 
   

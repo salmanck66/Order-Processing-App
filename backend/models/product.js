@@ -7,7 +7,7 @@ const productSchema = new mongoose.Schema({
   },
   edition: {
     type: String,
-    enum: ['Fan Version', 'Player Version', 'First Copy Set', 'Default'],
+    enum: ['Fan Version', 'Player Version', 'First Copy Set','Retro', 'Default'],
     required: true,
   },
   sizes: {
