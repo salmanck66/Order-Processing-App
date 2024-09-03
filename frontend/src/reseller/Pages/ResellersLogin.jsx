@@ -3,24 +3,35 @@ import { Input, Button, notification } from 'antd';
 import { useForm, Controller } from 'react-hook-form';
 import { recallerLogin } from '../Api/PostApi';
 import { useNavigate } from 'react-router-dom';
+import useAuthenticatedRedirect from '../Utils/useAuthenticatedRedirect';
 
 const ResellersLogin = () => {
   const { control, handleSubmit, formState: { errors, isSubmitting }, clearErrors } = useForm();
   const navigate = useNavigate();
+  const { isTokenValid, loading } = useAuthenticatedRedirect();
+
+  // Handle redirection based on token validity before form submission
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (isTokenValid) {
+    navigate('/reseller/orders');
+    return null; // Prevent further rendering
+  }
 
   const onSubmit = async (data) => {
     try {
-      const response = await recallerLogin(data);
-        // Show success notification
-        notification.success({
-          message: 'Login Successful',
-          description: 'You have successfully logged in.',
-        });
-        navigate('/reseller');
+      await recallerLogin(data);
 
-        // Redirect to the reseller page
-        // Show error notification
-       
+      // Show success notification
+      notification.success({
+        message: 'Login Successful',
+        description: 'You have successfully logged in.',
+      });
+      
+      // Redirect to the reseller page
+      navigate('/reseller/orders');
 
     } catch (error) {
       // Handle unexpected errors

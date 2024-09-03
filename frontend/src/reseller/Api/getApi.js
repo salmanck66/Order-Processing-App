@@ -48,7 +48,7 @@ export const logout = async ( ) => {
 
 export const verifyUser = async ( ) => {
     try {
-        const response = await userInstance.post(`/verifyUser`, );
+        const response = await userInstance.get(`/checkuser`, );
         
         return response.data;
     } catch (error) {
