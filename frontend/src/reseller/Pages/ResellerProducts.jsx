@@ -1,19 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { debounce } from "lodash"; 
 import FilterBox from "../Specific/Product/FilterBox";
 import ProductLists from "../Specific/Product/ProductLists";
 import Explore from "../Specific/Product/Explore";
 import { Divider } from "antd";
+import { fetchProducts } from "../Api/PostApi";
 
 const ResellerProducts = () => {
   const [selectedEditions, setSelectedEditions] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
-  const [priceRange, setPriceRange] = useState([0, 100]);
   const [stockOnly, setStockOnly] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(null);
+
+  const debouncedFetchProducts = useCallback(
+    debounce(() => {
+      fetchAndSetProducts();
+    }, 500), 
+    [selectedEditions, selectedSizes, stockOnly, searchQuery] 
+  );
+
+  const fetchAndSetProducts = async () => {
+    try {
+      const response = await fetchProducts({
+        editions: selectedEditions,
+        sizes: selectedSizes,
+        inStock: stockOnly,
+        searchQuery
+      });
+      console.log(response);
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    }
+  };
+
+  useEffect(() => {
+    debouncedFetchProducts();
+    return () => {
+      debouncedFetchProducts.cancel(); 
+    };
+  }, [selectedEditions, selectedSizes, stockOnly, searchQuery]);
 
   const onClearFilters = () => {
     setSelectedEditions([]);
     setSelectedSizes([]);
-    setPriceRange([0, 100]);
     setStockOnly(false);
   };
 
@@ -29,8 +60,6 @@ const ResellerProducts = () => {
           setSelectedEditions={setSelectedEditions}
           selectedSizes={selectedSizes}
           setSelectedSizes={setSelectedSizes}
-          priceRange={priceRange}
-          setPriceRange={setPriceRange}
           stockOnly={stockOnly}
           setStockOnly={setStockOnly}
         />
@@ -41,19 +70,18 @@ const ResellerProducts = () => {
           setSelectedEditions={setSelectedEditions}
           selectedSizes={selectedSizes}
           setSelectedSizes={setSelectedSizes}
-          priceRange={priceRange}
-          setPriceRange={setPriceRange}
           stockOnly={stockOnly}
           setStockOnly={setStockOnly}
           onClearFilters={onClearFilters}
           onStockToggle={onStockToggle}
+          setSearchQuery={setSearchQuery}
         />
         <Divider variant="dashed" type="horizontal" className="my-4" />
         <ProductLists
           selectedEditions={selectedEditions}
           selectedSizes={selectedSizes}
-          priceRange={priceRange}
           stockOnly={stockOnly}
+          products={products}
         />
       </div>
     </div>

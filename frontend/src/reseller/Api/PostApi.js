@@ -46,3 +46,18 @@ export const resetPassword = async (data) => {
         throw error;
     }
 };
+
+
+
+
+export const fetchProducts = async (data) => {
+    console.log(data);
+    
+    try {
+        const response = await userInstance.post(`fetchProducts`, data);
+        return response.data;
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        throw error;
+    }
+};
