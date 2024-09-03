@@ -410,10 +410,39 @@ export const updateacc = async (req, res) => {
 };
 
 
- export const orderstoday = async(req,res)=>
-{
-  const ordersNotCompleted = await Order.find({status:false})
-  const orderspending = await Order.find().length-ordersNotCompleted.length
-  const orderTotalLength = await Order.find().length
-  return res.status(200).json({ordersNotCompleted,orderspending,orderTotalLength})
-}
+export const orderstoday = async (req, res) => {
+  try {
+    const ordersNotCompleted = await Order.find({ status: false })
+      .populate('customers.orders.productId', 'name') // Populate product name
+      .exec();
+    
+    const orderspending = (await Order.countDocuments()) - ordersNotCompleted.length;
+    const orderTotalLength = await Order.countDocuments();
+
+    return res.status(200).json({ ordersNotCompleted, orderspending, orderTotalLength });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+
+export const statusChange = async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    // Find the order by ID and update its status to true
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      { status: true },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    return res.status(200).json({ message: 'Status updated successfully', updatedOrder });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};

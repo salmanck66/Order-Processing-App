@@ -1,6 +1,4 @@
-import mongoose from 'mongoose';
-import { type } from 'os';
-
+import mongoose from "mongoose";
 const orderSchema = new mongoose.Schema({
   reseller: {
     id: {
@@ -15,7 +13,7 @@ const orderSchema = new mongoose.Schema({
   },
   customers: [
     {
-      customerName:{
+      customerName: {
         type: String,
         required: true,
       },
@@ -23,11 +21,13 @@ const orderSchema = new mongoose.Schema({
         {
           productId: {
             type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product', // Reference to the Product model
             required: true,
           },
           orderSizes: {
             type: Map,
             of: Number,
+            sizestock: { type: Boolean, default: true },
             required: true,
           },
         },
@@ -38,15 +38,14 @@ const orderSchema = new mongoose.Schema({
       },
     },
   ],
-  status:{
-    type:Boolean,
-    default:false
+  status: {
+    type: Boolean,
+    default: false,
   },
   createdAt: {
     type: Date,
     default: Date.now,
   },
-
 });
 
 const Order = mongoose.model('Order', orderSchema);
