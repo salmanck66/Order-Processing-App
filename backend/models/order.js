@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import { type } from 'os';
-import { boolean } from 'yargs';
 
 const orderSchema = new mongoose.Schema({
   reseller: {
@@ -41,7 +40,7 @@ const orderSchema = new mongoose.Schema({
   ],
   status:{
     type:Boolean,
-    default:flase
+    default:false
   },
   createdAt: {
     type: Date,

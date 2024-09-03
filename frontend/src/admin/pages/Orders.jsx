@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchOrders } from '../Api/getApi';
+import ManageOrders from '../specific/Orders/ManageOrders';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -10,7 +11,9 @@ const Orders = () => {
     const getOrders = async () => {
       try {
         const data = await fetchOrders();
-        setOrders(data);
+        console.log(data);
+        
+        setOrders(data.ordersNotCompleted);
       } catch (err) {
         setError(err.message || 'Failed to fetch orders');
       } finally {
@@ -27,7 +30,7 @@ const Orders = () => {
   return (
     <div>
       <h1>Orders</h1>
-      
+      <ManageOrders orders={orders}/>
     </div>
   );
 };
