@@ -17,7 +17,21 @@ export const dashboard = async (phoneNumber, otp) => {
       console.log('verify Admin:', response);
       return response;
     } catch (error) {
-      console.error('Error generating OTP:', error);
+      console.error('Error verifyAdmin', error);
       throw error.response ? error.response.data : new Error(error.message);
     }
   };
+
+
+  export const fetchOrders = async () => {
+    try {
+      const response = await adminInstance.get('/fetchOrders');
+      console.log('verify Admin:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetchOrders ', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  };
+
+  

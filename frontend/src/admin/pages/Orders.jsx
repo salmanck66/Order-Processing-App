@@ -1,9 +1,35 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
+import { fetchOrders } from '../Api/getApi';
 
 const Orders = () => {
-  return (
-    <div>Orders</div>
-  )
-}
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-export default Orders
+  useEffect(() => {
+    const getOrders = async () => {
+      try {
+        const data = await fetchOrders();
+        setOrders(data);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch orders');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getOrders();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <div>
+      <h1>Orders</h1>
+      
+    </div>
+  );
+};
+
+export default Orders;
