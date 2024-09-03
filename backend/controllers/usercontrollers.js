@@ -304,7 +304,7 @@ export const submitorder = async (req, res) => {
       }
   
       // Filter by stock status if provided
-      if (typeof inStock === 'boolean') {
+      if (typeof inStock == true) {
         query.stock = inStock;
       }
   
