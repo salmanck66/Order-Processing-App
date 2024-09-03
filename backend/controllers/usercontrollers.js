@@ -281,4 +281,50 @@ export const submitorder = async (req, res) => {
     }
   };
   
+  export const productsSearch = async (req, res) => {
+    try {
+      const { editions, sizes, inStock, search } = req.body;
+  
+      // Build the query object
+      let query = {};
+  
+      // Add search functionality if search term is provided (search by name only)
+      if (search) {
+        query.name = { $regex: search, $options: "i" }; // Case-insensitive search on name
+      }
+  
+      // Filter by editions if provided
+      if (editions && editions.length > 0) {
+        query.edition = { $in: editions };
+      }
+  
+      // Filter by sizes if provided
+      if (sizes && sizes.length > 0) {
+        query[`sizes.${sizes[0]}`] = true;
+      }
+  
+      // Filter by stock status if provided
+      if (typeof inStock === 'boolean') {
+        query.stock = inStock;
+      }
+  
+      // Fetch products based on the query
+      const products = await Product.find(query);
+  
+      // Respond with the filtered products
+      res.status(200).json({
+        success: true,
+        count: products.length,
+        products,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Server Error",
+      });
+    }
+  };
+  
+  
   

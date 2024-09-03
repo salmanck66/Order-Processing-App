@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import {eachOrder,prevOrdersOut,fetchProfile, submitorder,loginResellers ,Dashboard,ProductPageView ,logout,changePassword}  from '../controllers/usercontrollers.js';
+import {productsSearch,eachOrder,prevOrdersOut,fetchProfile, submitorder,loginResellers ,Dashboard,ProductPageView ,logout,changePassword}  from '../controllers/usercontrollers.js';
 import { verifyToken } from "../middlewares/authMiddleware.js";
 import { upload } from '../config/cloudinaryConfig.js'; // Update with correct path
 const router = Router();
@@ -16,6 +16,7 @@ router.post('/editprofile',changePassword)
 router.get('/recent-orders',prevOrdersOut)
 router.get('/eachorder/:orderId',eachOrder)
 router.get('/fetchProfile/',fetchProfile)
+router.post('/productsearch/',productsSearch)
 
 
 
