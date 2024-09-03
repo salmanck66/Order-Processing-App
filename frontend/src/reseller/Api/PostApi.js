@@ -54,10 +54,10 @@ export const fetchProducts = async (data) => {
     console.log(data);
     
     try {
-        const response = await userInstance.post(`fetchProducts`, data);
+        const response = await userInstance.post(`/productsearch`, data);
         return response.data;
     } catch (error) {
-        console.error('Error resetting password:', error);
+        console.error('Error productsearch password:', error);
         throw error;
     }
 };

@@ -33,7 +33,7 @@ const Explore = ({
   };
 
   return (
-    <div className="p-4 flex flex-col md:flex-row md:items-start">
+    <div className="p-4 flex flex-col md:flex-row md:items-start top-0  sticky">
       <div className="flex flex-wrap gap-2 ">
         {/* Editions */}
         {selectedEditions.length > 0 &&

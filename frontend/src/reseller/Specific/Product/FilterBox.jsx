@@ -6,8 +6,6 @@ const { Panel } = Collapse;
 const FilterBox = ({
   selectedEditions,
   setSelectedEditions,
-  selectedSizes,
-  setSelectedSizes,
 
 }) => {
   const editions = ["Fan Version", "Player Version", "First Copy Set", 'Retro', "Other"];
@@ -17,9 +15,6 @@ const FilterBox = ({
     setSelectedEditions(checkedValues);
   };
 
-  const handleSizeChange = (checkedValues) => {
-    setSelectedSizes(checkedValues);
-  };
 
 
 
@@ -46,16 +41,7 @@ const FilterBox = ({
           </div>
 
           {/* Filter by Size */}
-          <div className="mt-4">
-            <h1 className="text-sm font-thin mt-4">Sizes</h1>
-            <Divider className="mt-1 mb-2" />
-            <Checkbox.Group
-              options={sizes}
-              value={selectedSizes}
-              className="grid grid-cols-2 gap-2"
-              onChange={handleSizeChange}
-            />
-          </div>
+          
 
           {/* Filter by Price */}
          
@@ -78,14 +64,8 @@ const FilterBox = ({
         />
 
         {/* Filter by Size */}
-        <h1 className="text-sm font-thin mt-4 flex ">Sizes</h1>
         <Divider className="mt-1 mb-2" />
-        <Checkbox.Group
-          options={sizes}
-          value={selectedSizes}
-          className="grid grid-cols-1 gap-2 "
-          onChange={handleSizeChange}
-        />
+       
 
       
        

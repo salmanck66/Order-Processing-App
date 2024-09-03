@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { debounce } from "lodash"; 
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { debounce } from "lodash";
 import FilterBox from "../Specific/Product/FilterBox";
 import ProductLists from "../Specific/Product/ProductLists";
 import Explore from "../Specific/Product/Explore";
@@ -11,50 +11,49 @@ const ResellerProducts = () => {
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [stockOnly, setStockOnly] = useState(false);
   const [products, setProducts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const debouncedFetchProducts = useCallback(
-    debounce(() => {
-      fetchAndSetProducts();
-    }, 500), 
-    [selectedEditions, selectedSizes, stockOnly, searchQuery] 
+    debounce(async () => {
+      try {
+        const response = await fetchProducts({
+          editions: selectedEditions,
+          sizes: selectedSizes,
+          inStock: stockOnly,
+          searchQuery,
+        });
+        setProducts(response.products);
+        console.log(response);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
+    }, 500),
+    [selectedEditions, selectedSizes, stockOnly, searchQuery]
   );
-
-  const fetchAndSetProducts = async () => {
-    try {
-      const response = await fetchProducts({
-        editions: selectedEditions,
-        sizes: selectedSizes,
-        inStock: stockOnly,
-        searchQuery
-      });
-      console.log(response);
-      setProducts(response.data);
-    } catch (error) {
-      console.error("Failed to fetch products:", error);
-    }
-  };
 
   useEffect(() => {
     debouncedFetchProducts();
     return () => {
-      debouncedFetchProducts.cancel(); 
+      debouncedFetchProducts.cancel();
     };
-  }, [selectedEditions, selectedSizes, stockOnly, searchQuery]);
+  }, [debouncedFetchProducts]);
 
-  const onClearFilters = () => {
+  const onClearFilters = useCallback(() => {
     setSelectedEditions([]);
     setSelectedSizes([]);
     setStockOnly(false);
-  };
+    setSearchQuery("");
+  }, []);
 
-  const onStockToggle = () => {
-    setStockOnly(!stockOnly);
-  };
+  const onStockToggle = useCallback(() => {
+    setStockOnly((prev) => !prev);
+  }, []);
+
+  const memoizedProducts = useMemo(() => products, [products]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4">
-      <div className="col-span-1 md:col-span-1">
+    <div className="min-h-screen flex">
+      <div className="w-full md:w-1/5 sticky top-0 self-start overflow-y-auto h-full border-r">
         <FilterBox
           selectedEditions={selectedEditions}
           setSelectedEditions={setSelectedEditions}
@@ -64,7 +63,7 @@ const ResellerProducts = () => {
           setStockOnly={setStockOnly}
         />
       </div>
-      <div className="col-span-1 md:col-span-4">
+      <div className="w-full md:w-4/5 flex flex-col ">
         <Explore
           selectedEditions={selectedEditions}
           setSelectedEditions={setSelectedEditions}
@@ -81,7 +80,7 @@ const ResellerProducts = () => {
           selectedEditions={selectedEditions}
           selectedSizes={selectedSizes}
           stockOnly={stockOnly}
-          products={products}
+          products={memoizedProducts} // Pass the memoized products to avoid unnecessary re-renders
         />
       </div>
     </div>

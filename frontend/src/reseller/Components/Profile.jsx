@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { FaRegUser } from 'react-icons/fa';
+import { Popconfirm, Button, notification } from 'antd'; // Import notification from antd
 import PasswordResetModal from '../Specific/Account/PasswordResetModal';
+import { logout } from '../Api/getApi'; // Ensure this is the correct path
+import { useNavigate } from 'react-router-dom';
+
 export const Profile = ({ profile }) => {
+    const navigate = useNavigate()
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const showModal = () => {
@@ -10,6 +15,33 @@ export const Profile = ({ profile }) => {
 
   const closeModal = () => {
     setIsModalVisible(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout(); // Ensure this function handles the logout process properly
+      notification.success({
+        message: 'Logout Successful',
+        description: 'You have been logged out successfully.',
+      });
+      console.log('Logged out');
+      navigate('/')
+      // Additional logic to handle after successful logout (e.g., redirecting)
+    } catch (error) {
+      notification.error({
+        message: 'Logout Failed',
+        description: 'There was an issue logging you out. Please try again.',
+      });
+      console.error('Logout failed:', error);
+    }
+  };
+
+  const confirm = () => {
+    handleLogout();
+  };
+
+  const cancel = () => {
+    console.log('Logout cancelled');
   };
 
   return (
@@ -31,13 +63,25 @@ export const Profile = ({ profile }) => {
         </div>
       </div>
       <div className='mt-auto p-4'>
-        <div className='flex justify-center'>
+        <div className='flex flex-col items-center'>
           <p
-            className='px-4 py-2 rounded-md cursor-pointer transition duration-300'
+            className='px-4 py-0 rounded-md cursor-pointer text-sm text-blue-400 transition duration-300'
             onClick={showModal}
           >
             Password Reset?
           </p>
+          <Popconfirm
+            title="Are you sure you want to logout?"
+            description="This action will log you out."
+            onConfirm={confirm}
+            onCancel={cancel}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button danger type='text' className='px-4 py-0 text-red-600 rounded-md text-sm cursor-pointer transition duration-300'>
+              Logout
+            </Button>
+          </Popconfirm>
         </div>
       </div>
       
