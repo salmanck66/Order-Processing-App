@@ -34,3 +34,26 @@ export const fetchProfile = async ( ) => {
         throw error;
     }
 };
+
+export const logout = async ( ) => {
+    try {
+        const response = await userInstance.post(`/logout`, );
+        
+        return response.data;
+    } catch (error) {
+        console.error('Error searching products:', error);
+        throw error;
+    }
+};
+
+export const verifyUser = async ( ) => {
+    try {
+        const response = await userInstance.post(`/verifyUser`, );
+        
+        return response.data;
+    } catch (error) {
+        console.error('Error searching products:', error);
+        throw error;
+    }
+};
+
