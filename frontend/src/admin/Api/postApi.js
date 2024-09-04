@@ -34,3 +34,15 @@ export const verifyOtp = async (phoneNumber, otp) => {
       throw error.response ? error.response.data : new Error(error.message);
     }
   };
+
+
+  export const uploadProducts = async (data) => {
+    try {
+      const response = await adminInstance.post('/addproduct', data);
+      console.log('addproduct response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Error addproduct:', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  };
