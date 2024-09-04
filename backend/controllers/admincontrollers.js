@@ -200,49 +200,57 @@ export const addUser = async (req, res) => {
 // Add Product
 export const addproduct = async (req, res) => {
   try {
-    const { name, edition, sizes, price } = req.body;
+    const products = req.body; // Assuming req.body is an array of products
 
-    // Convert the sizes array into an object with boolean values
-    const sizeOptions = ["S", "M", "L", "XL", "XXL"];
-    const sizesObject = sizeOptions.reduce((acc, size) => {
-      acc[size] = sizes.includes(size);
-      return acc;
-    }, {});
+    // Process each product in the array
+    const createdProducts = await Promise.all(
+      products.map(async (productData, index) => {
+        const { name, edition, sizes, price } = productData;
 
-    // Process image files uploaded via Multer and Cloudinary
-    const images = req.files
-      ? await Promise.all(
-          req.files.map(async (file) => {
-            const result = await cloudinary.v2.uploader.upload(file.path, {
-              transformation: [
-                { width: 500, crop: "scale" },
-                { quality: 35 },
-                { fetch_format: "auto" },
-              ],
-            });
+        // Convert the sizes array into an object with boolean values
+        const sizeOptions = ["S", "M", "L", "XL", "XXL"];
+        const sizesObject = sizeOptions.reduce((acc, size) => {
+          acc[size] = sizes.includes(size);
+          return acc;
+        }, {});
 
-            return {
-              url: result.secure_url,
-              public_id: result.public_id,
-            };
-          })
-        )
-      : [];
+        // Process image files uploaded via Multer and Cloudinary
+        const images = req.files && req.files[index]
+          ? await Promise.all(
+              req.files.map(async (file) => {
+                const result = await cloudinary.v2.uploader.upload(file.path, {
+                  transformation: [
+                    { width: 500, crop: "scale" },
+                    { quality: 35 },
+                    { fetch_format: "auto" },
+                  ],
+                });
 
-    const product = new Product({
-      name,
-      edition,
-      sizes: sizesObject, // Use the constructed sizes object
-      price,
-      images,
-      stock: true, // Default to in-stock
-    });
+                return {
+                  url: result.secure_url,
+                  public_id: result.public_id,
+                };
+              })
+            )
+          : [];
 
-    await product.save();
-    res.status(201).json({ message: "Product added successfully.", product });
+        const product = new Product({
+          name,
+          edition,
+          sizes: sizesObject, // Use the constructed sizes object
+          price,
+          images,
+          stock: true, // Default to in-stock
+        });
+
+        return await product.save();
+      })
+    );
+
+    res.status(201).json({ message: "Products added successfully.", products: createdProducts });
   } catch (error) {
-    console.error("Error adding product:", error);
-    res.status(500).json({ message: "Failed to add product." });
+    console.error("Error adding products:", error);
+    res.status(500).json({ message: "Failed to add products." });
   }
 };
 
@@ -335,6 +343,7 @@ export const deletereseller = async (req, res) => {
 };
 
 // Generate XLS Report
+
 export const xlsreportgen = async (req, res) => {
   try {
     const workbook = new ExcelJS.Workbook();
@@ -344,24 +353,39 @@ export const xlsreportgen = async (req, res) => {
     worksheet.columns = [
       { header: "Order ID", key: "orderId", width: 20 },
       { header: "Reseller", key: "reseller", width: 20 },
+      { header: "Customer", key: "customerName", width: 20 },
       { header: "Product", key: "product", width: 30 },
+      { header: "Size", key: "size", width: 10 },
       { header: "Quantity", key: "quantity", width: 10 },
       { header: "Price", key: "price", width: 15 },
       { header: "Total", key: "total", width: 15 },
     ];
 
     // Fetch orders data
-    const orders = await Order.find({});
+    const orders = await Order.find({})
+      .populate("customers.orders.productId") // Populate product details
+      .exec();
 
     // Add rows
     orders.forEach((order) => {
-      worksheet.addRow({
-        orderId: order._id,
-        reseller: order.resellerName,
-        product: order.productName,
-        quantity: order.quantity,
-        price: order.price,
-        total: order.price * order.quantity,
+      order.customers.forEach((customer) => {
+        customer.orders.forEach((productOrder) => {
+          productOrder.orderSizes.forEach((sizeDetail) => {
+            const product = productOrder.productId;
+            const totalPrice = product.price * sizeDetail.quantity;
+
+            worksheet.addRow({
+              orderId: order._id,
+              reseller: order.reseller.name,
+              customerName: customer.customerName,
+              product: product.name,
+              size: sizeDetail.size,
+              quantity: sizeDetail.quantity,
+              price: product.price,
+              total: totalPrice,
+            });
+          });
+        });
       });
     });
 

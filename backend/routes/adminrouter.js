@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import {
+import {statusChange,
   requestOTP, 
   verifyOTPAndLogin,
   updateacc,
@@ -37,14 +37,16 @@ router.get("/verify-admin", verifyAdmin);
 
 router.get("/resellers", Resellers);
 router.get("/products", ProductPageView);
-router.get("/ordergen", xlsreportgen);
+router.get("/ordergen", xlsreportgen);  
 
 router.get('/orders',orderstoday)
 router.post("/adduser", addUser);
-router.post("/addproduct", upload.array("images", 5), addproduct);
+router.post("/statuschange", statusChange);
+router.post("/addproducxt", upload.array("images", 5), addproduct);
 
 router.put("/editproduct/:id", editproduct);
 router.put("/updateacc", updateacc);
+
 
 router.delete("/deleteproduct/:id", deleteproduct);
 router.delete("/deletereseller/:id", deletereseller);

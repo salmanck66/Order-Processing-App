@@ -149,7 +149,7 @@ export const ProductPageView = async (req, res) => {
     try {
       const data = req.body;
       const { phone } = req.user;
-      const pdfFile = req.file; // Get the PDF file from the request
+      const imageFiles = req.files; // Get the array of image files from the request
   
       // Define the order placement time window
       const currentTime = moment();
@@ -176,14 +176,18 @@ export const ProductPageView = async (req, res) => {
         createdAt: { $gte: orderDate },
       });
   
+      // Function to get the image UID by product index
+      const getImageUID = (index) => imageFiles[index] ? imageFiles[index].uid : 'No File';
+  
+      // Process the data and add to the order
       if (existingOrder) {
-        data.forEach((product) => {
+        data.forEach((product, index) => {
           existingOrder.customers.push({
             customerName: product.customerName,
-            label: pdfFile ? pdfFile.uid : 'No File',
+            label: getImageUID(index),
             orders: product.orders?.map(order => ({
               productId: order._id,
-              orderSizes: processOrderSizes(order.orderSizes), // Use the function to process sizes
+              orderSizes: processOrderSizes(order.orderSizes),
             })),
           });
         });
@@ -191,12 +195,12 @@ export const ProductPageView = async (req, res) => {
         await existingOrder.save();
         return res.status(200).json({ message: 'Order updated successfully', order: existingOrder });
       } else {
-        const customers = data.map(product => ({
+        const customers = data.map((product, index) => ({
           customerName: product.customerName,
-          label: pdfFile ? pdfFile.uid : 'No File',
+          label: getImageUID(index),
           orders: product.orders?.map(order => ({
             productId: order._id,
-            orderSizes: processOrderSizes(order.orderSizes), // Use the function to process sizes
+            orderSizes: processOrderSizes(order.orderSizes),
           })),
         }));
   
