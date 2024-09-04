@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Modal, Form, Input, notification } from 'antd';
 import { useForm, Controller } from 'react-hook-form';
 import { createUser } from '../Api/postApi';
+import ResellersList from '../specific/Account/ResellersList';
 
 const Account = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -133,6 +134,7 @@ const Account = () => {
        
         </Form>
       </Modal>
+      <ResellersList/>
     </div>
   );
 };
