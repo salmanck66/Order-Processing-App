@@ -1,5 +1,4 @@
 import { Router } from "express";
-import multer from "multer";
 import {statusChange,
   requestOTP, 
   verifyOTPAndLogin,
@@ -18,16 +17,16 @@ import {statusChange,
   orderstoday,
 } from "../controllers/admincontrollers.js";
 import { verifyAdmin } from "../middlewares/authAdmin.js";
-import { storage } from "../config/cloudinaryConfig.js"; // Moved Cloudinary config to a separate file
+import fileUpload from "express-fileupload";
+
+
 
 const router = Router();
-const upload = multer({ storage });
-
 // Routes for OTP and login (no token required)
 router.post("/request-otp", requestOTP);
 router.post("/verify-otp", verifyOTPAndLogin);
 
-router.post("/bulk-upload", upload.single("file"), bulkUploadProducts);
+router.post("/bulk-upload",fileUpload() , bulkUploadProducts);
 
 // Apply token verification middleware globally for the routes below
 // Routes that require token verification
@@ -42,7 +41,7 @@ router.get("/ordergen", xlsreportgen);
 router.get('/orders',orderstoday)
 router.post("/adduser", addUser);
 router.post("/statuschange", statusChange);
-router.post("/addproducxt", upload.array("images", 5), addproduct);
+router.post('/addproducts',fileUpload(), addproduct);
 
 router.put("/editproduct/:id", editproduct);
 router.put("/updateacc", updateacc);

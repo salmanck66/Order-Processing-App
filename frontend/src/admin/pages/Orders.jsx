@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { fetchOrders } from '../Api/getApi';
 import ManageOrders from '../specific/Orders/ManageOrders';
 

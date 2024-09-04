@@ -200,7 +200,13 @@ export const addUser = async (req, res) => {
 // Add Product
 export const addproduct = async (req, res) => {
   try {
+
+    console.log('Files:', req);
+    console.log('Files:', req.file, req.files);
+
+    console.log('Body:', req.body);
     const products = req.body; // Assuming req.body is an array of products
+    console.log(products);
 
     // Process each product in the array
     const createdProducts = await Promise.all(
@@ -215,23 +221,11 @@ export const addproduct = async (req, res) => {
         }, {});
 
         // Process image files uploaded via Multer and Cloudinary
-        const images = req.files && req.files[index]
-          ? await Promise.all(
-              req.files.map(async (file) => {
-                const result = await cloudinary.v2.uploader.upload(file.path, {
-                  transformation: [
-                    { width: 500, crop: "scale" },
-                    { quality: 35 },
-                    { fetch_format: "auto" },
-                  ],
-                });
-
-                return {
-                  url: result.secure_url,
-                  public_id: result.public_id,
-                };
-              })
-            )
+        const images = req.files && req.files.length > 0
+          ? req.files.map(file => ({
+              url: file.path, // Path should be a URL if using CloudinaryStorage
+              public_id: file.filename, // This depends on how you set `public_id`
+            }))
           : [];
 
         const product = new Product({

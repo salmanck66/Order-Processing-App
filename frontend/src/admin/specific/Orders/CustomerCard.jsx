@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Table, Card, Button, message, Checkbox } from 'antd';
 import { IoPrintSharp } from "react-icons/io5";
 import { GoFileSubmodule } from "react-icons/go";
+import { ManageOutOffStock } from '../../Api/postApi';
 
 const CustomerCard = ({ customer }) => {
   const [selectedSizes, setSelectedSizes] = useState(() => {
@@ -23,8 +24,8 @@ const CustomerCard = ({ customer }) => {
   };
 
   const handleSizeChange = (productId, size, checked) => {
-        console.log(productId, size, checked);
-        
+        console.log(productId, size, checked, customer._id);
+        ManageOutOffStock({productId, size,checked,customerId: customer._id})
     setSelectedSizes((prevSelectedSizes) => ({
       ...prevSelectedSizes,
       [productId]: {
