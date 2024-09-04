@@ -4,10 +4,15 @@ import userrouter from './routes/userrouter.js';
 import connectDB from "./db/dbconnect.js";
 import cors from 'cors'
 import cookieParser from 'cookie-parser';
+import fileUpload from 'express-fileupload';
+import bodyParser from 'body-parser';
 
 
 
 const app = express();
+app.use(fileUpload({
+  createParentPath: true 
+}));app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser())
 app.use(cors({
     origin: 'http://localhost:5173',

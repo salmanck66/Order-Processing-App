@@ -132,7 +132,7 @@ const UploadItem = ({ control, index, errors, remove }) => {
             
                     const updatedFileList = [...fileList, file];
                     setFileList(updatedFileList); // Update file list
-                    onChange(updatedFileList.map(f => f.originFileObj)); // Notify react-hook-form
+                    onChange(updatedFileList.map(file => file.originFileObj)); // Notify react-hook-form
             
                     return false; // Prevent automatic upload
                   }}

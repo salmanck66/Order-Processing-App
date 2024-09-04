@@ -17,7 +17,6 @@ import {statusChange,
   orderstoday,
 } from "../controllers/admincontrollers.js";
 import { verifyAdmin } from "../middlewares/authAdmin.js";
-import fileUpload from "express-fileupload";
 
 
 
@@ -26,7 +25,7 @@ const router = Router();
 router.post("/request-otp", requestOTP);
 router.post("/verify-otp", verifyOTPAndLogin);
 
-router.post("/bulk-upload",fileUpload() , bulkUploadProducts);
+router.post("/bulk-upload" , bulkUploadProducts);
 
 // Apply token verification middleware globally for the routes below
 // Routes that require token verification
@@ -41,7 +40,7 @@ router.get("/ordergen", xlsreportgen);
 router.get('/orders',orderstoday)
 router.post("/adduser", addUser);
 router.post("/statuschange", statusChange);
-router.post('/addproducts',fileUpload(), addproduct);
+router.post('/addproducts', addproduct);
 
 router.put("/editproduct/:id", editproduct);
 router.put("/updateacc", updateacc);

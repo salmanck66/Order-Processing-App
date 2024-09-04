@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
     "cloudinary": "^1.21.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -31,6 +32,7 @@
     "nodemailer": "^6.9.14",
     "npm": "^10.8.3",
     "springedge": "^1.0.6",
+    "streamifier": "^0.1.1",
     "xlsx": "^0.18.5",
     "yargs": "^17.7.2"
   },
