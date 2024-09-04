@@ -1,5 +1,4 @@
-import React from 'react';
-import { Card, message } from 'antd';
+import { Card,} from 'antd';
 import CustomerCard from './CustomerCard';
 
 const ManageOrders = ({ orders }) => {

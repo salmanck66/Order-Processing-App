@@ -5,7 +5,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { uploadProducts } from '../Api/postApi';
 
 const ProductUpload = () => {
-  const { control, handleSubmit, reset } = useForm({
+  const { control, handleSubmit, reset, formState: { errors } } = useForm({
     defaultValues: {
       products: [{ name: '', edition: '', sizes: ['S', 'M', 'L', 'XL'], price: '' }],
     },
@@ -17,13 +17,15 @@ const ProductUpload = () => {
   });
 
   const onSubmit = (data) => {
+    console.log(data);
+    
     Modal.confirm({
       title: 'Confirm Upload',
       content: 'Are you sure you want to upload these products?',
       okText: 'Yes',
       cancelText: 'No',
       onOk: () => {
-        uploadProducts(data)
+        uploadProducts(data.products)
           .then(() => {
             notification.success({
               message: 'Upload Successful',
@@ -42,7 +44,7 @@ const ProductUpload = () => {
   };
 
   const addProduct = () => {
-    append({ name: '', edition: '', sizes: [], price: '' });
+    append({ name: '', edition: '', sizes: ['S', 'M', 'L', 'XL'], price: '' });
   };
 
   return (
@@ -55,7 +57,7 @@ const ProductUpload = () => {
               <UploadItem
                 control={control}
                 index={index}
-                errors={{}}
+                errors={errors.products?.[index]} // Pass specific errors for this product
                 remove={remove} // Pass the remove function
               />
               <Button

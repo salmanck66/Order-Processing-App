@@ -5,7 +5,9 @@ import { UploadOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
-const UploadItem = ({ control, index, errors }) => {
+const UploadItem = ({ control, index, errors, remove }) => {
+  console.log(errors);
+  
   const [fileList, setFileList] = useState([]);
 
   return (
@@ -13,8 +15,8 @@ const UploadItem = ({ control, index, errors }) => {
       <div className='p-0 col-span-2'>
         <Form.Item
           label={`Product Name ${index + 1}`}
-          validateStatus={errors?.products?.[index]?.name ? 'error' : ''}
-          help={errors?.products?.[index]?.name ? errors?.products?.[index]?.name?.message : ''}
+          validateStatus={errors?.name.message ? 'error' : 'enter product name'}
+          help={errors?.name  ? errors?.name?.message : ''}
         >
           <Controller
             name={`products.${index}.name`}
@@ -32,9 +34,8 @@ const UploadItem = ({ control, index, errors }) => {
 
         <Form.Item
           label={`Edition ${index + 1}`}
-          validateStatus={errors?.products?.[index]?.edition ? 'error' : ''}
-          help={errors?.products?.[index]?.edition ? errors?.products?.[index]?.edition?.message : ''}
-        >
+          validateStatus={errors?.edition.message ? 'error' : 'enter product name'}
+          help={errors?.edition  ? errors?.edition?.message : ''}        >
           <Controller
             name={`products.${index}.edition`}
             control={control}
@@ -58,10 +59,10 @@ const UploadItem = ({ control, index, errors }) => {
       <div className='col-span-2'>
         <Form.Item
           label={`Sizes ${index + 1}`}
-          validateStatus={errors?.products?.[index]?.sizes ? 'error' : ''}
-          help={errors?.products?.[index]?.sizes ? errors?.products?.[index]?.sizes?.message : ''}
+          validateStatus={errors?.sizes?.message ? 'error' : 'enter product name'}
+          help={errors?.sizes  ? errors?.sizes?.message : ''}        
         >
-           <Controller
+          <Controller
             name={`products.${index}.sizes`}
             control={control}
             rules={{ required: 'At least one size must be selected' }}
@@ -70,18 +71,16 @@ const UploadItem = ({ control, index, errors }) => {
               <Checkbox.Group
                 options={['S', 'M', 'L', 'XL', 'XXL']} // Available options for checkboxes
                 value={value}
-                onChange={(checkedValues) => {
-                  onChange(checkedValues); // Update the form state with selected values
-                }}
+                onChange={onChange} // Update the form state with selected values
               />
-              )}
-              />
+            )}
+          />
         </Form.Item>
 
         <Form.Item
           label={`Price ${index + 1}`}
-          validateStatus={errors?.products?.[index]?.price ? 'error' : ''}
-          help={errors?.products?.[index]?.price ? errors?.products?.[index]?.price?.message : ''}
+          validateStatus={errors?.price?.message ? 'error' : 'enter product name'}
+          help={errors?.price  ? errors?.price?.message : ''}        
         >
           <Controller
             name={`products.${index}.price`}
@@ -111,40 +110,48 @@ const UploadItem = ({ control, index, errors }) => {
       <Form.Item
         className='col-span-3'
         label={`Images ${index + 1}`}
+        validateStatus={errors?.images ? 'error' : ''}
+        help={errors?.images ? errors?.images?.message : ''}
       >
         <Controller
           name={`products.${index}.images`} // Ensure the name matches the schema
           control={control}
+          rules={{ validate: value => value?.length > 0 || 'At least one image must be uploaded' }}
           render={({ field: { value, onChange } }) => (
-            <Upload
-              listType="picture-card"
-              fileList={fileList}
-              multiple
-              maxCount={3} // Limit to 3 files
-              beforeUpload={(file) => {
-                const updatedFileList = [...fileList, file];
-                if (updatedFileList.length <= 3) {
-                  setFileList(updatedFileList); // Update file list
-                  onChange(updatedFileList.map(file => file.originFileObj)); // Notify react-hook-form
-                }
-                return false; // Prevent automatic upload
-              }}
-              onChange={({ fileList: newFileList }) => {
-                setFileList(newFileList); // Update file list
-                onChange(newFileList.map(file => file.originFileObj)); // Update form state with files
-              }}
-              customRequest={({ file, onSuccess }) => {
-                setTimeout(() => {
-                  onSuccess(file);
-                }, 1000);
-              }}
-            >
-              {fileList.length < 3 && 
-              <Button icon={<UploadOutlined />}>Upload </Button>
-              }
-            </Upload>
-          )}
-        />
+           
+                <Upload
+                  listType="picture-card"
+                  fileList={fileList}
+                  multiple
+                  maxCount={3} // Limit to 3 files
+                  beforeUpload={(file) => {
+                    // Check if fileList length is within the limit
+                    if (fileList.length >= 3) {
+                      return Upload.LIST_IGNORE; // Ignore file if the limit is reached
+                    }
+            
+                    const updatedFileList = [...fileList, file];
+                    setFileList(updatedFileList); // Update file list
+                    onChange(updatedFileList.map(f => f.originFileObj)); // Notify react-hook-form
+            
+                    return false; // Prevent automatic upload
+                  }}
+                  onChange={({ fileList: newFileList }) => {
+                    setFileList(newFileList); // Update file list
+                    onChange(newFileList.map(file => file.originFileObj)); // Update form state with files
+                  }}
+                  customRequest={({ file, onSuccess, onError }) => {
+                    // Replace this with your actual upload logic
+                    setTimeout(() => {
+                      onSuccess(file);
+                    }, 1000);
+                  }}
+                >
+                  {fileList.length < 3 && <Button icon={<UploadOutlined />}>Upload </Button>}
+                </Upload>
+            
+  )}
+  />
       </Form.Item>
     </div>
   );
