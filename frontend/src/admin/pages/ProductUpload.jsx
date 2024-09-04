@@ -25,7 +25,16 @@ const ProductUpload = () => {
       okText: 'Yes',
       cancelText: 'No',
       onOk: () => {
-        uploadProducts(data.products)
+        const formData = new FormData();
+        data.products.forEach((product, index) => {
+          formData.append(`products[${index}][name]`, product.name);
+          formData.append(`products[${index}][edition]`, product.edition);
+          formData.append(`products[${index}][price]`, product.price);
+          product.images.forEach((image, i) => {
+            formData.append(`products[${index}][images][${i}]`, image);
+          });
+        });
+        uploadProducts(formData)
           .then(() => {
             notification.success({
               message: 'Upload Successful',

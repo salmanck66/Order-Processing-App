@@ -17,6 +17,7 @@ import {
   verifyAccessToken,
   verifyRefreshToken,
 } from "../utils/tokenGen.js";
+import {  uploadToCloudinary } from "../config/cloudinaryConfig.js";
 
 // Temporary in-memory storage for OTPs
 let otpStorage = {};
@@ -198,17 +199,23 @@ export const addUser = async (req, res) => {
 
 
 // Add Product
+
 export const addproduct = async (req, res) => {
   try {
+    
 
-    console.log('Files:', req);
-    console.log('Files:', req.file, req.files);
+    // Extract products data from req.body
+    const products = [];
+    Object.keys(req.body).forEach(key => {
+      const match = key.match(/^products\[(\d+)]\[(\w+)]$/);
+      if (match) {
+        const [_, index, field] = match;
+        if (!products[index]) products[index] = {};
+        products[index][field] = req.body[key];
+      }
+    });
 
-    console.log('Body:', req.body);
-    const products = req.body; // Assuming req.body is an array of products
-    console.log(products);
-
-    // Process each product in the array
+    // Process each product
     const createdProducts = await Promise.all(
       products.map(async (productData, index) => {
         const { name, edition, sizes, price } = productData;
@@ -216,24 +223,45 @@ export const addproduct = async (req, res) => {
         // Convert the sizes array into an object with boolean values
         const sizeOptions = ["S", "M", "L", "XL", "XXL"];
         const sizesObject = sizeOptions.reduce((acc, size) => {
-          acc[size] = sizes.includes(size);
+          acc[size] = sizes?.includes(size);
           return acc;
         }, {});
 
-        // Process image files uploaded via Multer and Cloudinary
-        const images = req.files && req.files.length > 0
-          ? req.files.map(file => ({
-              url: file.path, // Path should be a URL if using CloudinaryStorage
-              public_id: file.filename, // This depends on how you set `public_id`
-            }))
-          : [];
+        // Process image files
+        const images = [];
+        for (let i = 0; i < 3; i++) {
+          const fileKey = `products[${index}][images][${i}]`;
+          if (req.files[fileKey]) {
+            images.push(req.files[fileKey].data); // Add file data to images array
+          }
+        }
 
+        // Handle image file processing
+        const imageDetails = await Promise.all(
+          images.map(async (fileBuffer) => {
+            try {
+              const url = await uploadToCloudinary(fileBuffer);
+              return {
+                url,
+                public_id: url.split('/').pop().split('.')[0], // Extract the public_id from the URL
+              };
+            } catch (error) {
+              console.error('Error uploading file to Cloudinary:', error);
+              return null; // Skip this image if there's an error
+            }
+          })
+        );
+
+        // Filter out any null image entries
+        const validImageDetails = imageDetails.filter(image => image !== null);
+
+        // Create and save the product
         const product = new Product({
           name,
           edition,
-          sizes: sizesObject, // Use the constructed sizes object
+          sizes: sizesObject,
           price,
-          images,
+          images: validImageDetails,
           stock: true, // Default to in-stock
         });
 
@@ -244,9 +272,12 @@ export const addproduct = async (req, res) => {
     res.status(201).json({ message: "Products added successfully.", products: createdProducts });
   } catch (error) {
     console.error("Error adding products:", error);
-    res.status(500).json({ message: "Failed to add products." });
+    res.status(500).json({ message: "Failed to add products.", error: error.message });
   }
 };
+
+
+
 
 // Edit Product
 // Edit Product
