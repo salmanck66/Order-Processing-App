@@ -23,6 +23,8 @@ const CustomerCard = ({ customer }) => {
   };
 
   const handleSizeChange = (productId, size, checked) => {
+        console.log(productId, size, checked);
+        
     setSelectedSizes((prevSelectedSizes) => ({
       ...prevSelectedSizes,
       [productId]: {

@@ -1,12 +1,13 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Input, Select, Checkbox, Form } from 'antd';
+import { Input, Select, Checkbox, Form, Upload, Button } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
 const UploadItem = ({ control, index, errors }) => {
   return (
-    <div className="bg-gray-50 flex  gap-2 h-full justify-center items-center rounded shadow-md p-6 mb-4">
+    <div className="bg-gray-50 flex flex-col md:flex-row gap-4 h-full justify-center items-center rounded shadow-md p-6 mb-4">
       <Form.Item
         label={`Product Name ${index + 1}`}
         validateStatus={errors?.products?.[index]?.name ? 'error' : ''}
@@ -19,7 +20,7 @@ const UploadItem = ({ control, index, errors }) => {
           render={({ field }) => (
             <Input
               type="text"
-              placeholder='Product Name'
+              placeholder="Product Name"
               {...field}
             />
           )}
@@ -37,7 +38,7 @@ const UploadItem = ({ control, index, errors }) => {
           rules={{ required: 'Edition is required' }}
           render={({ field }) => (
             <Select
-              placeholder='Select Edition'
+              placeholder="Select Edition"
               {...field}
               style={{ minWidth: 200 }}
             >
@@ -50,18 +51,19 @@ const UploadItem = ({ control, index, errors }) => {
         />
       </Form.Item>
 
-      <Form.Item label={`Sizes ${index + 1}`}>
+      <Form.Item
+        label={`Sizes ${index + 1}`}
+      >
         <Controller
           name={`products.${index}.sizes`}
           control={control}
-          render={({ field }) => (
-            <Checkbox.Group {...field}>
-              {['S', 'M', 'L', 'XL', 'XXL'].map((size) => (
-                <Checkbox key={size} value={size}>
-                  {size}
-                </Checkbox>
-              ))}
-            </Checkbox.Group>
+          defaultValue={['S', 'M', 'L', 'XL', 'XXL']} // Set initial selected sizes here
+          render={({ field: { value, onChange } }) => (
+            <Checkbox.Group
+            defaultValue={['S', 'M', 'L', 'XL', ]}
+              options={['S', 'M', 'L', 'XL', 'XXL']}
+              onChange={onChange}
+            />
           )}
         />
       </Form.Item>
@@ -78,9 +80,42 @@ const UploadItem = ({ control, index, errors }) => {
           render={({ field }) => (
             <Input
               type="number"
-              placeholder='Price'
+              placeholder="Price"
               {...field}
             />
+          )}
+        />
+      </Form.Item>
+
+      <Form.Item
+        label={`Image ${index + 1}`}
+        validateStatus={errors?.products?.[index]?.image ? 'error' : ''}
+        help={errors?.products?.[index]?.image ? errors?.products?.[index]?.image?.message : ''}
+      >
+        <Controller
+          name={`products.${index}.image`}
+          control={control}
+          render={({ field: { value, onChange } }) => (
+            <Upload
+              showUploadList={false}
+              beforeUpload={(file) => {
+                onChange(file);
+                // Prevent automatic upload
+                return false;
+              }}
+              onChange={(info) => {
+                if (info.fileList.length) {
+                  onChange(info.fileList[0].originFileObj); // Use the file object
+                }
+              }}
+              customRequest={({ file, onSuccess }) => {
+                setTimeout(() => {
+                  onSuccess(file);
+                }, 1000);
+              }}
+            >
+              <Button icon={<UploadOutlined />}>Upload Image</Button>
+            </Upload>
           )}
         />
       </Form.Item>

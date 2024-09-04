@@ -22,6 +22,15 @@ export const dashboard = async (phoneNumber, otp) => {
     }
   };
 
+  export const fetchResellers = async () => {
+    try {
+      const response = await adminInstance.get('/resellers');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetchResellers ', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  };
 
   export const fetchOrders = async () => {
     try {
@@ -34,4 +43,5 @@ export const dashboard = async (phoneNumber, otp) => {
     }
   };
 
+  
   
