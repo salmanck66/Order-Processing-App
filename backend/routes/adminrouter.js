@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {statusChange,
-  requestOTP, 
-  verifyOTPAndLogin,
+  requestOTP, stockoutMake,
+  verifyOTPAndLogin,getAllProducts,
   updateacc,
   logout,
   xlsreportgen,
@@ -35,12 +35,15 @@ router.get("/verify-admin", verifyAdmin);
 
 router.get("/resellers", Resellers);
 router.get("/products", ProductPageView);
+router.get("/add", ProductPageView);
 router.get("/ordergen", xlsreportgen);  
 
 router.get('/orders',orderstoday)
 router.post("/adduser", addUser);
 router.post("/statuschange", statusChange);
 router.post('/addproducts', addproduct);
+router.post('/orderitemstockout', stockoutMake);
+router.get('/getallproducts', getAllProducts);
 
 router.put("/editproduct/:id", editproduct);
 router.put("/updateacc", updateacc);

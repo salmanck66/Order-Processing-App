@@ -495,3 +495,76 @@ export const statusChange = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+export const stockoutMake = async (req, res) => {
+  const { productid, customerid, size, checked } = req.body;
+  const phone = req.user.phone;
+
+  try {
+    // Find the reseller by phone number
+    const reseller = await Reseller.findOne({ phone });
+    if (!reseller) {
+      return res.status(404).json({ message: 'Reseller not found' });
+    }
+
+    // Find today's date, ignoring time
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find the current date's order for this reseller
+    const order = await Order.findOne({
+      'reseller.id': reseller._id,
+      createdAt: {
+        $gte: today,
+        $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000), // until end of the day
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Find the customer and the product within the order
+    const customer = order.customers.id(customerid);
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    const productOrder = customer.orders.find(
+      (order) => order.productId.toString() === productid
+    );
+    if (!productOrder) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Find the size within the product order
+    const sizeToUpdate = productOrder.orderSizes.find(
+      (orderSize) => orderSize.size === size
+    );
+    if (!sizeToUpdate) {
+      return res.status(404).json({ message: 'Size not found' });
+    }
+
+    // Update the sizestock field if checked is true
+    if (checked) {
+      sizeToUpdate.sizestock = false;
+      await order.save();
+      return res.status(200).json({ message: 'Size marked as out of stock' });
+    }
+
+    return res.status(400).json({ message: 'Invalid operation' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getAllProducts = async (req,res)=>
+{
+  const products  = Product.find()
+  if(products)
+  {
+    res.status(200).json("no products")
+  }
+  res.status(200).json({products})
+}
