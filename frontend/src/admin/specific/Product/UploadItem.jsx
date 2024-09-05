@@ -14,8 +14,8 @@ const UploadItem = ({ control, index, errors, remove }) => {
     <div className="grid grid-cols-7 md:flex-row gap-4 h-full justify-center items-center rounded-lg shadow-lg hover:shadow-2xl p-6 mb-4">
       <div className='p-0 col-span-2'>
         <Form.Item
-          label={`Product Name ${index + 1}`}
-          validateStatus={errors?.name.message ? 'error' : 'enter product name'}
+          label={`Product Name `}
+          validateStatus={errors?.name?.message ? 'error' : 'enter product name'}
           help={errors?.name  ? errors?.name?.message : ''}
         >
           <Controller
@@ -33,8 +33,8 @@ const UploadItem = ({ control, index, errors, remove }) => {
         </Form.Item>
 
         <Form.Item
-          label={`Edition ${index + 1}`}
-          validateStatus={errors?.edition.message ? 'error' : 'enter product name'}
+          label={`Edition `}
+          validateStatus={errors?.edition?.message ? 'error' : 'enter product name'}
           help={errors?.edition  ? errors?.edition?.message : ''}        >
           <Controller
             name={`products.${index}.edition`}
@@ -58,7 +58,7 @@ const UploadItem = ({ control, index, errors, remove }) => {
 
       <div className='col-span-2'>
         <Form.Item
-          label={`Sizes ${index + 1}`}
+          label={`Sizes `}
           validateStatus={errors?.sizes?.message ? 'error' : 'enter product name'}
           help={errors?.sizes  ? errors?.sizes?.message : ''}        
         >
@@ -78,7 +78,7 @@ const UploadItem = ({ control, index, errors, remove }) => {
         </Form.Item>
 
         <Form.Item
-          label={`Price ${index + 1}`}
+          label={`Price `}
           validateStatus={errors?.price?.message ? 'error' : 'enter product name'}
           help={errors?.price  ? errors?.price?.message : ''}        
         >
@@ -109,7 +109,7 @@ const UploadItem = ({ control, index, errors, remove }) => {
 
       <Form.Item
         className='col-span-3'
-        label={`Images ${index + 1}`}
+        label={`Images `}
         validateStatus={errors?.images ? 'error' : ''}
         help={errors?.images ? errors?.images?.message : ''}
       >
