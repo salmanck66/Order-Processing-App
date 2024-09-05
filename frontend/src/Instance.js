@@ -5,8 +5,8 @@ export const adminInstance = axios.create({
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
-        timeout: 1000
-        }
+      },
+    
         
 })
 
