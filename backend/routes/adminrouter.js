@@ -44,6 +44,7 @@ router.post("/adduser", addUser);
 router.post("/statuschange", statusChange);
 router.post('/addproducts', addproduct);
 router.post('/orderitemstockout', stockoutMake);
+router.post('/productsizestockout', stockoutMake);
 router.get('/getallproducts', getAllProducts);
 
 router.put("/editproduct/:id", editproduct);

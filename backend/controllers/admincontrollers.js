@@ -595,3 +595,58 @@ export const getAllProducts = async (req, res) => {
     return res.status(500).json({ error: 'Server error' });
   }
 };
+
+export const ProductStockOut = async (req, res) => {
+  const { fullstockout, sizes, productID } = req.body;
+
+  if (!productID) {
+    return res.status(400).json({ message: "Product ID is required." });
+  }
+
+  try {
+    const product = await Product.findById(productID);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found." });
+    }
+
+    if (fullstockout === false) {
+      // Mark all sizes as out of stock
+      product.sizes = {
+        S: false,
+        M: false,
+        L: false,
+        XL: false,
+        XXL: false,
+      };
+      product.stock = false; // Full stockout
+    } else if (fullstockout === true) {
+      if (sizes) {
+        // Update sizes based on provided sizes
+        const updatedSizes = { ...product.sizes };
+        for (const size in sizes) {
+          if (sizes.hasOwnProperty(size) && updatedSizes.hasOwnProperty(size)) {
+            updatedSizes[size] = sizes[size]; // Set true or false based on the sizes provided
+          }
+        }
+        product.sizes = updatedSizes;
+      } else {
+        // If no specific sizes are provided, make all sizes true (in stock)
+        product.sizes = {
+          S: true,
+          M: true,
+          L: true,
+          XL: true,
+          XXL: true,
+        };
+      }
+      product.stock = true; // Mark product as in stock
+    }
+
+    await product.save();
+
+    return res.status(200).json({ message: "Product stock updated successfully.", product });
+  } catch (error) {
+    return res.status(500).json({ message: "An error occurred.", error });
+  }
+};
