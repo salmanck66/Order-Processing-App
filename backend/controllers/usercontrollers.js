@@ -295,14 +295,14 @@ export const ProductPageView = async (req, res) => {
   
   export const productsSearch = async (req, res) => {
     try {
-      const { editions, sizes, inStock, search } = req.body;
+      const { editions, sizes, inStock, searchQuery } = req.body;
   
       // Build the query object
       let query = {};
   
       // Add search functionality if search term is provided (search by name only)
-      if (search) {
-        query.name = { $regex: search, $options: "i" }; // Case-insensitive search on name
+      if (searchQuery) {
+        query.name = { $regex: searchQuery, $options: "i" }; // Case-insensitive search on name
       }
   
       // Filter by editions if provided
