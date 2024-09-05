@@ -578,10 +578,20 @@ export const stockoutMake = async (req, res) => {
   }
 };
 
-export const getAllProducts = async (req,res)=>
-{
-  const products  = await Product.find()
-  
-  
- return  res.status(200).json({products})
-}
+export const getAllProducts = async (req, res) => {
+  try {
+    const { search } = req.query;
+
+    // If a search query is provided, filter products by name containing the search string
+    let products;
+    if (search) {
+      products = await Product.find({ name: { $regex: search, $options: 'i' } }); // Case-insensitive search
+    } else {
+      products = await Product.find();
+    }
+
+    return res.status(200).json({ products });
+  } catch (error) {
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
