@@ -42,13 +42,19 @@ const UploadItem = ({ control, index, errors, remove }) => {
             rules={{ required: 'Edition is required' }}
             render={({ field }) => (
               <Select
-                placeholder="Select Edition"
+              placeholder="Select Edition"
+              className='text-red-700'
                 {...field}
                 style={{ minWidth: 200 }}
               >
                 <Option value="Fan Version">Fan Version</Option>
                 <Option value="Player Version">Player Version</Option>
                 <Option value="First Copy Set">First Copy Set</Option>
+                <Option value="Retro">Retro</Option>
+                <Option value="Kids set">Kids set</Option>
+                <Option value="Sleeveless Training Set">Sleeveless Training Set</Option>
+                <Option value="Basket Ball Set">Basket Ball Set</Option>
+                <Option value="Basketball Master">Basketball Master</Option>
                 <Option value="Default">Default</Option>
               </Select>
             )}

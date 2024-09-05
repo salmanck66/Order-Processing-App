@@ -1,22 +1,27 @@
 import { useEffect, useState } from 'react';
 import { fetchProducts } from '../../Api/getApi'; // Assuming you have a delete API function
-import { Table, message, Button, Popconfirm } from 'antd';
+import { Table, message, Button, Popconfirm, Input } from 'antd';
 import { IoTrashOutline } from "react-icons/io5";
 import { deleteMultipleProductsByIds, deleteProduct } from '../../Api/DeleteApi';
+import ExpandProduct from './ExpandProduct';
 
 const ListProducts = () => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const [expandedRowKeys, setExpandedRowKeys] = useState([]);
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
         const data = await fetchProducts();
         setProducts(data.products);
+        setFilteredProducts(data.products);
       } catch (error) {
         setError(error);
         message.error('Failed to load products.');
@@ -30,9 +35,9 @@ const ListProducts = () => {
 
   const handleDeleteSelected = async () => {
     try {
-      // Assuming you have a batch delete API function
       await deleteMultipleProductsByIds(selectedRowKeys);
       setProducts(products.filter((product) => !selectedRowKeys.includes(product._id)));
+      setFilteredProducts(filteredProducts.filter((product) => !selectedRowKeys.includes(product._id)));
       setSelectedRowKeys([]);
       message.success('Selected products deleted successfully');
     } catch (error) {
@@ -44,10 +49,21 @@ const ListProducts = () => {
     try {
       await deleteProduct(id);
       setProducts(products.filter((product) => product._id !== id));
+      setFilteredProducts(filteredProducts.filter((product) => product._id !== id));
       message.success('Product deleted successfully');
     } catch (error) {
       message.error('Failed to delete product');
     }
+  };
+
+  const handleSearch = (value) => {
+    setSearchText(value);
+    const filtered = products.filter(product => product.name.toLowerCase().includes(value.toLowerCase()));
+    setFilteredProducts(filtered);
+  };
+
+  const handleExpand = (expanded, record) => {
+    setExpandedRowKeys(expanded ? [record._id] : []);
   };
 
   const columns = [
@@ -115,12 +131,25 @@ const ListProducts = () => {
     setPageSize(page.pageSize);
   };
 
+  const expandedRowRender = (record) => {
+    return (
+      <ExpandProduct record={record}/>
+    );
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div>
-      <h1>Product List</h1>
+    <div className=''>
+      <div style={{ marginBottom: 16 }} className='w-full flex justify-end px-0 p-2'>
+        <Input.Search
+          placeholder="Search by product name"
+          value={searchText}
+          onChange={(e) => handleSearch(e.target.value)}
+          style={{ width: 300 }}
+        />
+      </div>
       {selectedRowKeys.length > 0 && (
         <Popconfirm
           title="Are you sure you want to delete the selected products?"
@@ -136,15 +165,18 @@ const ListProducts = () => {
       <Table
         rowSelection={rowSelection}
         columns={columns}
-        dataSource={products}
+        dataSource={filteredProducts}
         rowKey="_id"
         pagination={{
           current: currentPage,
           pageSize: pageSize,
-          total: products.length,
+          total: filteredProducts.length,
           showSizeChanger: true,
           onChange: handleTableChange,
         }}
+        expandedRowRender={expandedRowRender}
+        expandedRowKeys={expandedRowKeys}
+        onExpand={handleExpand}
       />
     </div>
   );
