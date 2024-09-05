@@ -5,7 +5,7 @@ import {statusChange,
   updateacc,
   logout,
   xlsreportgen,
-  editproduct,
+  editproduct,ProductStockOut,
   deletereseller,
   deleteproduct,
   addproduct,
@@ -44,7 +44,7 @@ router.post("/adduser", addUser);
 router.post("/statuschange", statusChange);
 router.post('/addproducts', addproduct);
 router.post('/orderitemstockout', stockoutMake);
-router.post('/productsizestockout', stockoutMake);
+router.post('/productsizestockout', ProductStockOut);
 router.get('/getallproducts', getAllProducts);
 
 router.put("/editproduct/:id", editproduct);
