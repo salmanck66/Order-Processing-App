@@ -64,4 +64,32 @@ export const verifyOtp = async (phoneNumber, otp) => {
       throw error.response ? error.response.data : new Error(error.message);
     }
   };
+
+
+  export const onStockSwitchChange = async (data) => {
+    try {
+      console.log(data);
+      
+      const response = await adminInstance.post('/', data);
+      console.log('verify-otp response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Error createUser:', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  };
+  
+
+  export const handleSizeSwitchChange = async (data) => {
+    try {
+      console.log(data);
+      
+      const response = await adminInstance.post('/', data);
+      console.log('verify-otp response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Error createUser:', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  };
   

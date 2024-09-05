@@ -1,72 +1,67 @@
-import { useEffect, useState } from 'react';
-import { fetchProducts } from '../../Api/getApi'; // Assuming you have a delete API function
-import { Table, message, Button, Popconfirm, Input } from 'antd';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { fetchProducts } from '../../Api/getApi';
+import { Table, message, Button, Popconfirm } from 'antd';
 import { IoTrashOutline } from "react-icons/io5";
 import { deleteMultipleProductsByIds, deleteProduct } from '../../Api/DeleteApi';
 import ExpandProduct from './ExpandProduct';
+import debounce from 'lodash.debounce';
 
-const ListProducts = () => {
+const ListProducts = ({ searchText }) => {
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [searchText, setSearchText] = useState('');
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
 
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const data = await fetchProducts();
-        setProducts(data.products);
-        setFilteredProducts(data.products);
-      } catch (error) {
-        setError(error);
-        message.error('Failed to load products.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProducts();
+  const loadProducts = useCallback(async (query) => {
+    setLoading(true);
+    try {
+      const data = await fetchProducts(query);
+      setProducts(data.products);
+    } catch (error) {
+      setError(error);
+      message.error('Failed to load products.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleDeleteSelected = async () => {
+  const debouncedLoadProducts = useCallback(debounce((query) => loadProducts(query), 500), [loadProducts]);
+
+  useEffect(() => {
+    debouncedLoadProducts(searchText);
+  }, [searchText, debouncedLoadProducts]);
+
+  const handleDeleteSelected = useCallback(async () => {
     try {
       await deleteMultipleProductsByIds(selectedRowKeys);
       setProducts(products.filter((product) => !selectedRowKeys.includes(product._id)));
-      setFilteredProducts(filteredProducts.filter((product) => !selectedRowKeys.includes(product._id)));
       setSelectedRowKeys([]);
       message.success('Selected products deleted successfully');
     } catch (error) {
       message.error('Failed to delete selected products');
     }
-  };
+  }, [selectedRowKeys, products]);
 
-  const handleDelete = async (id) => {
+  const handleDelete = useCallback(async (id) => {
     try {
       await deleteProduct(id);
       setProducts(products.filter((product) => product._id !== id));
-      setFilteredProducts(filteredProducts.filter((product) => product._id !== id));
       message.success('Product deleted successfully');
     } catch (error) {
       message.error('Failed to delete product');
     }
-  };
+  }, [products]);
 
-  const handleSearch = (value) => {
-    setSearchText(value);
-    const filtered = products.filter(product => product.name.toLowerCase().includes(value.toLowerCase()));
-    setFilteredProducts(filtered);
-  };
-
-  const handleExpand = (expanded, record) => {
+  const handleExpand = useCallback((expanded, record) => {
     setExpandedRowKeys(expanded ? [record._id] : []);
-  };
+  }, []);
 
-  const columns = [
+  const handleRowClick = useCallback((record) => {
+    setExpandedRowKeys(expandedRowKeys.includes(record._id) ? [] : [record._id]);
+  }, [expandedRowKeys]);
+
+  const columns = useMemo(() => [
     {
       title: 'Name',
       dataIndex: 'name',
@@ -112,44 +107,27 @@ const ListProducts = () => {
           cancelText="No"
         >
           <Button type="default" danger>
-            <IoTrashOutline/>
+            <IoTrashOutline />
           </Button>
         </Popconfirm>
       ),
     },
-  ];
+  ], [handleDelete]);
 
-  const rowSelection = {
+  const rowSelection = useMemo(() => ({
     selectedRowKeys,
     onChange: (newSelectedRowKeys) => {
       setSelectedRowKeys(newSelectedRowKeys);
     },
-  };
+  }), [selectedRowKeys]);
 
-  const handleTableChange = (page) => {
-    setCurrentPage(page.current);
-    setPageSize(page.pageSize);
-  };
-
-  const expandedRowRender = (record) => {
-    return (
-      <ExpandProduct record={record}/>
-    );
-  };
+  const expandedRowRender = useCallback((record) => <ExpandProduct record={record} />, []);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className=''>
-      <div style={{ marginBottom: 16 }} className='w-full flex justify-end px-0 p-2'>
-        <Input.Search
-          placeholder="Search by product name"
-          value={searchText}
-          onChange={(e) => handleSearch(e.target.value)}
-          style={{ width: 300 }}
-        />
-      </div>
+    <div>
       {selectedRowKeys.length > 0 && (
         <Popconfirm
           title="Are you sure you want to delete the selected products?"
@@ -165,18 +143,14 @@ const ListProducts = () => {
       <Table
         rowSelection={rowSelection}
         columns={columns}
-        dataSource={filteredProducts}
+        dataSource={products}
         rowKey="_id"
-        pagination={{
-          current: currentPage,
-          pageSize: pageSize,
-          total: filteredProducts.length,
-          showSizeChanger: true,
-          onChange: handleTableChange,
-        }}
-        expandedRowRender={expandedRowRender}
         expandedRowKeys={expandedRowKeys}
         onExpand={handleExpand}
+        onRow={(record) => ({
+          onClick: () => handleRowClick(record),
+        })}
+        expandedRowRender={expandedRowRender}
       />
     </div>
   );
