@@ -18,8 +18,4 @@ router.get('/fetchProfile',fetchProfile)
 router.post('/productsearch',productsSearch)
 router.get('/checkuser',checkUser)
 
-
-
-
-
 export default router;
