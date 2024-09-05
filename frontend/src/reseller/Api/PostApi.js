@@ -27,7 +27,11 @@ export const SearchProducts = async (query) => {
 
 export const submitorder = async (data) => {
     try {
-        const response = await userInstance.post(`/submitorder`, data);
+        const response = await userInstance.post(`/submitorder`, data , {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
         
         return response.data;
     } catch (error) {
