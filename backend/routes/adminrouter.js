@@ -15,6 +15,7 @@ import {statusChange,
   ProductPageView,
   addUser,
   orderstoday,
+  deleteMultipleProducts,
 } from "../controllers/admincontrollers.js";
 import { verifyAdmin } from "../middlewares/authAdmin.js";
 
@@ -50,6 +51,8 @@ router.put("/updateacc", updateacc);
 
 
 router.delete("/deleteproduct/:id", deleteproduct);
+router.delete("/deleteMultipleProductsByIds", deleteMultipleProducts);
+
 router.delete("/deletereseller/:id", deletereseller);
 
 export default router;
