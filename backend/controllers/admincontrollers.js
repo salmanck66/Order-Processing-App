@@ -333,6 +333,7 @@ export const editproduct = async (req, res) => {
 // Delete Product
 export const deleteproduct = async (req, res) => {
   const { id } = req.params;
+console.log(id);
 
   try {
     const deletedProduct = await Product.findByIdAndDelete(id);
@@ -348,6 +349,24 @@ export const deleteproduct = async (req, res) => {
   }
 };
 
+
+export const deleteMultipleProducts = async (req, res) => {
+  const  ids = req.body.ids;
+console.log(ids);
+
+  try {
+    const deletedResult = await Product.deleteMany({_id: {$in:ids}});
+
+    if (deletedResult.deletedCount === 0) {
+      return res.status(404).json({ message: "No products found to delete" });
+    }
+
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res.status(500).json({ message: "Failed to delete product." });
+  }
+};
 // Delete Reseller
 // Delete Reseller
 export const deletereseller = async (req, res) => {
@@ -561,10 +580,8 @@ export const stockoutMake = async (req, res) => {
 
 export const getAllProducts = async (req,res)=>
 {
-  const products  = Product.find()
-  if(products)
-  {
-    res.status(200).json("no products")
-  }
-  res.status(200).json({products})
+  const products  = await Product.find()
+  
+  
+ return  res.status(200).json({products})
 }
