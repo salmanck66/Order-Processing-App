@@ -621,7 +621,7 @@ export const ProductStockOut = async (req, res) => {
       };
       product.stock = false; // Full stockout
     } else if (fullstockout === true) {
-      if (sizes) {
+      if (sizes&&Object.keys(sizes).length>0) {
         // Update sizes based on provided sizes
         const updatedSizes = { ...product.sizes };
         for (const size in sizes) {
