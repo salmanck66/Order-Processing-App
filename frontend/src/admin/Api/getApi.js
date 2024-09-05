@@ -43,9 +43,13 @@ export const dashboard = async (phoneNumber, otp) => {
     }
   };
 
-  export const fetchProducts = async () => {
+  export const fetchProducts = async (search) => {
     try {
-      const response = await adminInstance.get('/getallproducts');
+      console.log(search);
+      const params = { search: search };
+
+      const response = await adminInstance.get('/getallproducts', { params });
+
       console.log('fetchProducts', response);
       return response.data;
     } catch (error) {
