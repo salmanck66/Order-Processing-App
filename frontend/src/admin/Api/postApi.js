@@ -65,31 +65,28 @@ export const verifyOtp = async (phoneNumber, otp) => {
     }
   };
 
+// Handle stock update for full stockout
+export const onStockSwitchChange = async (data) => {
+  try {
+    console.log('Stock data:', data);
+    const response = await adminInstance.post('/productsizestockout', data);
+    console.log('Stock update response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating stock:', error);
+    throw error.response ? error.response.data : new Error(error.message);
+  }
+};
 
-  export const onStockSwitchChange = async (data) => {
-    try {
-      console.log(data);
-      
-      const response = await adminInstance.post('/', data);
-      console.log('verify-otp response:', response);
-      return response.data;
-    } catch (error) {
-      console.error('Error createUser:', error);
-      throw error.response ? error.response.data : new Error(error.message);
-    }
-  };
-  
-
-  export const handleSizeSwitchChange = async (data) => {
-    try {
-      console.log(data);
-      
-      const response = await adminInstance.post('/', data);
-      console.log('verify-otp response:', response);
-      return response.data;
-    } catch (error) {
-      console.error('Error createUser:', error);
-      throw error.response ? error.response.data : new Error(error.message);
-    }
-  };
-  
+// Handle stock update for individual size
+export const onSizeSwitchChange = async (data) => {
+  try {
+    console.log('Size update data:', data.sizes);
+    const response = await adminInstance.post('/productsizestockout', data);
+    console.log('Size update response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating size:', error);
+    throw error.response ? error.response.data : new Error(error.message);
+  }
+};
