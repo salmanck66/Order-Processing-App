@@ -483,10 +483,11 @@ export const orderstoday = async (req, res) => {
     const ordersNotCompleted = await Order.findOne({ status: false })
       .populate('customers.orders.productId', 'name') // Populate product name
       .exec();
-    
+    const orderss  =await Order.find()
+      console.log(orderss)
+
     const orderspending = (await Order.countDocuments()) - ordersNotCompleted.length;
     const orderTotalLength = await Order.countDocuments();
-
     return res.status(200).json({ ordersNotCompleted, orderspending, orderTotalLength });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -648,5 +649,53 @@ export const ProductStockOut = async (req, res) => {
     return res.status(200).json({ message: "Product stock updated successfully.", product });
   } catch (error) {
     return res.status(500).json({ message: "An error occurred.", error });
+  }
+};
+
+
+
+export const toggleOrderStatus = async (req, res) => {
+  try {
+    const { orderId, customerId, orderIndex } = req.params; // Parameters expected from the request
+
+    // Validate parameters
+    if (!orderId || !customerId || orderIndex === undefined) {
+      return res.status(400).json({ message: 'Missing required parameters' });
+    }
+
+    // Convert orderIndex to integer
+    const index = parseInt(orderIndex, 10);
+    if (isNaN(index)) {
+      return res.status(400).json({ message: 'Invalid order index' });
+    }
+
+    // Find the order by ID
+    const order = await Order.findOne({ _id: orderId, 'customers._id': customerId });
+    if (!order) {
+      return res.status(404).json({ message: 'Order or customer not found' });
+    }
+
+    // Locate the customer
+    const customer = order.customers.id(customerId);
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found in the order' });
+    }
+
+    // Locate the specific order within the customer's orders
+    const orderItem = customer.orders[index];
+    if (!orderItem) {
+      return res.status(404).json({ message: 'Order item not found' });
+    }
+
+    // Toggle the status
+    orderItem.status = !orderItem.status;
+
+    // Save the updated order
+    await order.save();
+
+    res.status(200).json({ message: 'Order status toggled successfully', order });
+  } catch (error) {
+    console.error('Error toggling order status:', error);
+    res.status(500).json({ message: 'An error occurred while toggling the order status' });
   }
 };

@@ -41,6 +41,10 @@ const orderSchema = new mongoose.Schema({
             type: [orderSizeSchema],
             required: true,
           },
+          status: {
+            type: Boolean,
+            default: false,
+          }
         },
       ],
       label: {

@@ -2,7 +2,7 @@ import { Router } from "express";
 import {statusChange,
   requestOTP, stockoutMake,
   verifyOTPAndLogin,getAllProducts,
-  updateacc,
+  updateacc,toggleOrderStatus,
   logout,
   xlsreportgen,
   editproduct,ProductStockOut,
@@ -25,7 +25,6 @@ const router = Router();
 // Routes for OTP and login (no token required)
 router.post("/request-otp", requestOTP);
 router.post("/verify-otp", verifyOTPAndLogin);
-
 router.post("/bulk-upload" , bulkUploadProducts);
 
 // Apply token verification middleware globally for the routes below
@@ -33,23 +32,23 @@ router.post("/bulk-upload" , bulkUploadProducts);
 router.post("/logout", logout);
 router.get("/", Dashboard);
 router.get("/verify-admin", verifyAdmin);
-
 router.get("/resellers", Resellers);
 router.get("/products", ProductPageView);
 router.get("/add", ProductPageView);
 router.get("/ordergen", xlsreportgen);  
-
+router.get('/getallproducts', getAllProducts);
 router.get('/orders',orderstoday)
+
+
 router.post("/adduser", addUser);
 router.post("/statuschange", statusChange);
 router.post('/addproducts', addproduct);
 router.post('/orderitemstockout', stockoutMake);
 router.post('/productsizestockout', ProductStockOut);
-router.get('/getallproducts', getAllProducts);
+router.post('/orderreject',toggleOrderStatus)
 
 router.put("/editproduct/:id", editproduct);
 router.put("/updateacc", updateacc);
-
 
 router.delete("/deleteproduct/:id", deleteproduct);
 router.delete("/deleteMultipleProductsByIds", deleteMultipleProducts);

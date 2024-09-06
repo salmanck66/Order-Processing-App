@@ -84,7 +84,7 @@ export const ProductPageView = async (req, res) => {
 
     // Fetch data from the database, filtering products that contain the search query in their name
     const data = await Product.find({
-      name: { $regex: searchQuery, $options: "i" }, // 'i' makes the search case-insensitive
+      name: { $regex: searchQuery, $options: "i" },stock:true // 'i' makes the search case-insensitive
     });
 
     // Send the response with the filtered products
@@ -381,3 +381,4 @@ export const productsSearch = async (req, res) => {
 export const checkUser = async (req, res) => {
   res.status(200).json({ status: "success" });
 };
+
