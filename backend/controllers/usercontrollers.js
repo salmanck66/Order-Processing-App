@@ -102,7 +102,6 @@ export const logout = async (req, res) => {
 };
 
 export const Dashboard = async (req, res) => {
-  console.log("fasd");
   res.send("Admin Home");
 };
 
@@ -168,108 +167,105 @@ const parseOrderData = (flatData) => {
     }))
   }));
 };
-    export const submitorder = async (req, res) => {
-      try {
-        console.log('Request files:', req.files);
-        console.log('Request body:', req.body);
-    
-        // Parse the body using qs (or directly if it's already in the correct format)
-        const decodedBody = qs.parse(req.body);
-    
-        
-        // Check if the files exist
-        const pdfFiles = Object.values(req.files); // Fallback to empty array if files are undefined
-    
-        // Define the order placement time window
-        const currentTime = moment();
-        const startTime = moment().set({ hour: 20, minute: 0, second: 0 }); // 8 PM today
-        const endTime = moment().add(1, "day").set({ hour: 11, minute: 59, second: 59 }); // 11:59 AM the next day
-    
-        // Check if the current time is outside the allowed window
-        if (!currentTime.isBefore(startTime) || currentTime.isAfter(endTime)) {
-          return res.status(403).json({ message: "Orders can only be placed between 8 PM and 12 PM." });
+export const submitorder = async (req, res) => {
+  try {
+    if (!req.files && req.body) {
+      return res.status(404).json({ message: "Cannot submit without body" });
+    }
+
+    // Parse the body using qs (or directly if it's already in the correct format)
+    const decodedBody = qs.parse(req.body);
+    console.log('Decoded Body:', decodedBody); // Debugging
+
+    // Check if the files exist
+    const pdfFiles = Object.values(req.files) || []; // Fallback to empty array if files are undefined
+    console.log('PDF Files:', pdfFiles); // Debugging
+
+    // Define the order placement time window
+    const currentTime = moment();
+    const startTime = moment().set({ hour: 20, minute: 0, second: 0 }); // 8 PM today
+    const endTime = moment().add(1, "day").set({ hour: 11, minute: 59, second: 59 }); // 11:59 AM the next day
+
+    // Check if the current time is outside the allowed window
+    if (!currentTime.isBefore(startTime) || currentTime.isAfter(endTime)) {
+      return res.status(403).json({ message: "Orders can only be placed between 8 PM and 12 PM." });
+    }
+
+    // Find the reseller by phone number
+    const { phone } = req.user; // Assuming phone number is stored in req.user
+    const reseller = await Reseller.findOne({ phone });
+    if (!reseller) {
+      return res.status(404).json({ message: "Reseller not found" });
+    }
+
+    // Define the order date
+    const orderDate = moment().startOf("day").toDate();
+
+    // Check if there's an existing order for the reseller today
+    let existingOrder = await Order.findOne({
+      "reseller.id": reseller._id,
+      createdAt: { $gte: orderDate },
+    });
+
+    // Process the PDFs, upload to Cloudinary, and get their URLs
+    const pdfUrls = await Promise.all(
+      pdfFiles.map(async (file) => {
+        if (!file || !file.data) {
+          return Promise.reject('No PDF'); // Handle files with missing buffer
         }
-    
-        // Find the reseller by phone number
-        const { phone } = req.user; // Assuming phone number is stored in req.user
-        const reseller = await Reseller.findOne({ phone });
-        if (!reseller) {
-          return res.status(404).json({ message: "Reseller not found" });
+        try {
+          const url = await uploadToCloudinary(file.data);
+          return url;
+        } catch (error) {
+          console.error('Error uploading file:', error);
+          return "No PDF"; // Handle upload errors
         }
-    
-        // Define the order date
-        const orderDate = moment().startOf("day").toDate();
-    
-        // Check if there's an existing order for the reseller today
-        let existingOrder = await Order.findOne({
-          "reseller.id": reseller._id,
-          createdAt: { $gte: orderDate },
-        });
-    
-        // Upload PDF to Cloudinary and get the URL
-       
-    
-        // Process the PDFs, upload to Cloudinary, and get their URLs
-        const pdfUrls = await Promise.all(
-          pdfFiles.map(async (file) => {
-            if (!file || !file.data) {
-              console.log('File with missing data:', file); // Log files with missing data
-              return Promise.reject('no pdf'); // Handle files with missing buffer
-            } 
-            try {
-              const url = await uploadToCloudinary(file.data);
-              return url;
-            } catch (error) {
-              console.error('Error uploading file:', error);
-              return "No PDF"; // Handle upload errors
-            }
-          })
-        );
-    
-    
-        
-    
-        // Prepare the order data
-        const orderData = {
-          reseller: {
-            id: reseller._id,
-            name: reseller.name, // Assuming reseller has a 'name' field
-          },
-          customers: Object.keys(decodedBody).map((key,index) => {
-            const customer = decodedBody[key];
-            return {
-              customerName: customer.customerName,
-              orders: customer.orders.map((order) => ({
-                productId: order._id,
-                orderSizes: Object.keys(order.orderSizes).map(size => ({
-                  size,
-                  quantity: order.orderSizes[size], // Quantity for each size
-                })),
-              })),
-              label: pdfUrls[index], // Assign a label if needed
-            };
-          }),
-          status: false, // or whatever status you want to initialize with
-        };
-    
-        // Save or update the order
-        if (existingOrder) {
-          // Update the existing order
-          existingOrder.customers = orderData.customers;
-          existingOrder.status = orderData.status;
-          await existingOrder.save();
-        } else {
-          // Create a new order
-          const newOrder = new Order(orderData);
-          await newOrder.save();
-        }
-    
-        res.status(200).json({ message: "Order submitted successfully." });
-      } catch (error) {
-        console.error("Error submitting order:", error);
-        res.status(500).json({ message: "An error occurred while submitting the order." });
-      }
-    };
+      })
+    );
+
+    // Prepare the new customers data
+    const newCustomers = Object.keys(decodedBody).map((key, index) => {
+      const customer = decodedBody[key];
+      console.log('Customer Data:', customer); // Debugging
+
+      return {
+        customerName: customer.customerName || 'Unknown', // Default value if missing
+        orders: customer.orders.map((order) => ({
+          productId: order._id,
+          orderSizes: Object.keys(order.orderSizes).map(size => ({
+            size,
+            quantity: order.orderSizes[size], // Quantity for each size
+          })),
+        })),
+        label: pdfUrls[index] || 'No PDF URL', // Default value if missing
+      };
+    });
+
+    // Save or update the order
+    if (existingOrder) {
+      console.log('Existing Order:', existingOrder); // Debugging
+      // Update the existing order
+      existingOrder.customers.push(...newCustomers); // Ensure new customers are pushed correctly
+      await existingOrder.save();
+    } else {
+      // Create a new order
+      const newOrder = new Order({
+        reseller: {
+          id: reseller._id,
+          name: reseller.name,
+        },
+        customers: newCustomers,
+        status: false,
+      });
+      await newOrder.save();
+    }
+
+    res.status(200).json({ message: "Order submitted successfully." });
+  } catch (error) {
+    console.error("Error submitting order:", error);
+    res.status(500).json({ message: "An error occurred while submitting the order." });
+  }
+};
 
 
 export const prevOrdersOut = async (req, res) => {
@@ -303,7 +299,6 @@ export const eachOrder = async (req, res) => {
     const orders = await Order.findById(orderId)
       .populate("products.id") // Populate product details using the 'id' reference
       .sort({ createdAt: -1 });
-    console.log(orders);
 
     res.status(200).json({ orders });
   } catch (error) {
@@ -327,7 +322,6 @@ export const fetchProfile = async (req, res) => {
 
     const orders = await Order.find({ "reseller.id": reseller._id }).exec();
     const customers = orders[0].customers;
-    console.log(orders);
 
     return res.status(200).json({
       reseller,
@@ -368,7 +362,6 @@ export const productsSearch = async (req, res) => {
 
     // Fetch products based on the query
     const products = await Product.find(query);
-    console.log(query);
 
     // Respond with the filtered products
     res.status(200).json({
