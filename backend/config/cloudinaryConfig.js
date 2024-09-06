@@ -15,12 +15,14 @@ cloudinary.config({
 export const uploadToCloudinary = (fileBuffer) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.v2.uploader.upload_stream(
-      { resource_type: 'auto' }, // 'auto' will handle various types (image, video, etc.)
-      (error, result) => {
+      { resource_type: 'auto' },
+            (error, result) => {
         if (error) {
           console.error('Error uploading file to Cloudinary:', error);
           return reject(error);
         }
+        console.log('result',result);
+        
         return resolve(result.secure_url);
       }
     );

@@ -79,6 +79,7 @@ const CustomerCard = ({ customer }) => {
       )}
       <div className='flex justify-between p-2'>
         <p>Label: {customer.label}</p>
+        
         <div className='flex justify-end gap-2'>
           <Button className='bg-blue-600 text-white'>
             Print <IoPrintSharp />

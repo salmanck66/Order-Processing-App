@@ -17,6 +17,8 @@ const ordersSlice = createSlice({
       state.totalCustomers = state.totalCustomers + 1;
     },
     addOrder: (state, action) => {
+
+      
       // console.log('Dispatching addOrder');
       // console.log('Action Payload:', JSON.stringify(action.payload, null, 2));
 
@@ -39,8 +41,7 @@ const ordersSlice = createSlice({
 
         // Check if the customer already has an 'orders' array
         if (customer.orders) {
-          // console.log('Existing orders found:', customer.orders);
-          // Push the new product into the existing orders array
+          
           customer.orders.push(action.payload.product);
         } else {
           // console.log('No orders found, creating a new orders array');
