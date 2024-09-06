@@ -1,19 +1,27 @@
 import React, { useState } from 'react';
-import { Button, Upload, Modal } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { Button, Upload, Modal, Tooltip, message } from 'antd';
+import { UploadOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useForm } from 'react-hook-form';
-import { addCustomer } from '../../Redux/ordersSlice';
 import { useDispatch } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid'; // Import uuid for unique id generation
+import { addCustomer } from '../../Redux/ordersSlice';
 import AddOrders from './AddOrders';
 
 const CreateCustomer = ({ open, onOk, onCancel, title }) => {
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [customerId, setCustomerId] = useState(''); // State to store the generated unique ID
+  const [customerId, setCustomerId] = useState(''); // Store the unique customer ID
   const { register, handleSubmit, formState: { errors }, setError, clearErrors, reset } = useForm();
   const dispatch = useDispatch();
+
+  const beforeUpload = (file) => {
+    const isPDF = file.type === 'application/pdf';
+    if (!isPDF) {
+      message.error('You can only upload PDF files!');
+    }
+    return isPDF || Upload.LIST_IGNORE; // Prevents uploading non-PDF files
+  };
 
   const handleFileChange = (info) => {
     setFileError('');
@@ -55,12 +63,11 @@ const CreateCustomer = ({ open, onOk, onCancel, title }) => {
 
     setCustomerId(uniqueId); // Store the unique ID in state
     setSubmitted(true);
-    reset()
+    reset();
   };
 
   const handleFooterClick = () => {
     onCancel(); // Close the modal
-    
     setSubmitted(false); // Reset submission state
   };
 
@@ -71,49 +78,61 @@ const CreateCustomer = ({ open, onOk, onCancel, title }) => {
       open={open}
       onCancel={onCancel}
       footer={
-      
-        submitted ?  (  <Button type="primary" onClick={handleFooterClick}>
-          Submit
-        </Button>): (
-          <></>
-        )
-      
+        submitted ? (
+          <Button type="primary" onClick={handleFooterClick}>
+            Submit
+          </Button>
+        ) : null
       }
       bodyStyle={{ maxHeight: '500px', overflowY: 'auto' }} // Ensure scrolling for long content
     >
-      <div style={{ padding: '0px' }}>
+      <div className="flex flex-col gap-4 p-0">
         {!submitted ? (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div style={{ marginBottom: '1px' }}>
-              <label>Customer Name</label>
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold">
+                Customer Name
+                <Tooltip title="Please enter the full name of the customer.">
+                  <InfoCircleOutlined className="ml-2 text-gray-400" />
+                </Tooltip>
+              </label>
               <input
-                className='w-full p-2 border-2 rounded-lg border-blue-400 active:border-blue-500'
-                {...register('customerName', { required: 'Please enter the customer name' })}
-                placeholder="Enter customer name"
+                className="p-2 border-2 rounded-lg border-blue-400 focus:border-blue-500"
+                {...register('customerName', { required: 'Customer name is required' })}
+                placeholder="e.g., John Doe"
               />
-              {errors.customerName && <span style={{ color: 'red' }}>{errors.customerName.message}</span>}
+              {errors.customerName && (
+                <span className="text-red-500">{errors.customerName.message}</span>
+              )}
             </div>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label>Upload File</label>
+
+            <div className="flex items-center gap-4">
+              <label className="font-semibold">
+                Upload Label
+                <Tooltip title="Upload the relevant file or document.">
+                  <InfoCircleOutlined className="ml-2 text-gray-400" />
+                </Tooltip>
+              </label>
               <Upload
                 onChange={handleFileChange}
-                beforeUpload={() => false}
+                beforeUpload={beforeUpload} // Fix here: Pass the file for validation
                 maxCount={1}
               >
-                <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                <Button icon={<UploadOutlined />}>Select Label</Button>
               </Upload>
-              {fileError && <span style={{ color: 'red' }}>{fileError}</span>}
+              {fileError && <span className="text-red-500">{fileError}</span>}
             </div>
-            
-            <div>
-              <Button type="primary" htmlType="submit" block>
-                Submit
-              </Button>
+
+            <div className="flex justify-end">
+              <Tooltip title="Ensure all fields are filled correctly before uploading.">
+                <Button type="primary" htmlType="submit">
+                  Add
+                </Button>
+              </Tooltip>
             </div>
           </form>
         ) : (
-          <AddOrders customerId={customerId}/>
+          <AddOrders customerId={customerId} />
         )}
       </div>
     </Modal>

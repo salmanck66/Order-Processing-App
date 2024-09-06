@@ -5,6 +5,23 @@ const ProductLists = ({ products }) => {
   // Define columns for the Ant Design Table
   const columns = [
     {
+      title: 'Images',
+      dataIndex: 'images',
+      key: 'images',
+      
+      render: (images) => (
+        images.length > 0 ? 
+        <Image
+          width={50}
+          height={50}
+          className=' object-cover'
+          src={images[0].url}
+          alt={images[0].public_id}
+        /> : 
+        'No Image'
+      ),
+    },
+    {
       title: 'Product Name',
       dataIndex: 'name',
       key: 'name',
@@ -30,24 +47,10 @@ const ProductLists = ({ products }) => {
       title: 'In Stock',
       dataIndex: 'stock',
       key: 'stock',
+      responsive: ['sm'],
       render: (stock) => (stock ? 'Yes' : 'No'),
     },
-    {
-      title: 'Images',
-      dataIndex: 'images',
-      key: 'images',
-      render: (images) => (
-        images.length > 0 ? 
-        <Image
-          width={50}
-          height={50}
-          className=' object-cover'
-          src={images[0].url}
-          alt={images[0].public_id}
-        /> : 
-        'No Image'
-      ),
-    },
+    
     
   ];
 

@@ -9,7 +9,6 @@ import Login from "../admin/pages/login";
 import ProductUpload from "../admin/pages/ProductUpload";
 import RecallersLogin from "../reseller/Pages/ResellersLogin";
 import ProtectedRouteReseller from "../reseller/Utils/ProtectedRouteReseller";
-import ResellerDashboard from "../reseller/Pages/ResellerDashboard";
 import ResellerProducts from "../reseller/Pages/ResellerProducts";
 import ResellerAccount from "../reseller/Pages/ResellerAccount";
 import ResellerOrders from "../reseller/Pages/ResellerOrders";
@@ -65,7 +64,7 @@ export const Routes = createBrowserRouter([
         element: <ProtectedRouteReseller />,
         children: [
           {
-            path: "orders",
+            path: "",
             element: <ResellerOrders />,
           },
           {

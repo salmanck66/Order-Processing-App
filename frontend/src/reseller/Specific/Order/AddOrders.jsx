@@ -8,7 +8,7 @@ import { updateOrder } from '../../Redux/ordersSlice'; // Ensure you use this if
 const { Title, Text } = Typography;
 
 const AddOrders = ({ customerId }) => {
-  const dispatch = useDispatch(); // Use this if you plan to dispatch actions
+  const dispatch = useDispatch();
 
   // Find the customer with the matching ID in the state
   const customer = useSelector(state =>
@@ -17,13 +17,13 @@ const AddOrders = ({ customerId }) => {
 
   useEffect(() => {
     console.log(customer);
-    
+
     // Example: Dispatch an action or perform some side effect when `customer` changes
     if (customer) {
       console.log('Customer data has changed:', customer);
       // Example: dispatch(updateOrder(customer)) if needed
     }
-  }, [customer]); // Dependency array ensures the effect runs when `customer` changes
+  }, [customer]);
 
   const onChangeSizes = (sizes) => {
     console.log('Sizes changed:', sizes);
@@ -31,9 +31,11 @@ const AddOrders = ({ customerId }) => {
   };
 
   return (
-    <div style={{ padding: '0px', margin: '0 auto' }}>
-      <Card>
-        <Title level={5}>Customer Created Successfully!</Title>
+    <div className="container mx-auto p-4">
+      <Card bordered={false} className="shadow-lg rounded-lg">
+        <Title level={4} className="text-center text-blue-600">
+          Customer Created Successfully!
+        </Title>
 
         {customer ? (
           <>
@@ -43,22 +45,32 @@ const AddOrders = ({ customerId }) => {
 
             {customer.orders?.length > 0 ? (
               <List
-                className='overflow-y-scroll'
+                className="overflow-y-scroll max-h-[60vh] " // Limiting height for scroll
                 itemLayout="horizontal"
                 dataSource={customer.orders}
                 renderItem={order => (
-                  <List.Item>
+                  <List.Item
+                    className="border rounded-lg p-4 my-1 hover:shadow-md transition-shadow duration-300 ease-in-out"
+                  >
                     <List.Item.Meta
                       title={<Text strong>Order ID: {order._id}</Text>}
                       description={
-                        <div>
-                          <Text>Name: {order.name}</Text><br />
-                          {order.orderSizes && Object.entries(order.orderSizes).map(([key, value]) => (
-
-                            <Text key={key}>{key}: {value}</Text>
-                          ))}
-                          {/* <Text>Order Total: {order.orderTotal}</Text> */}
-                          <SizeList sizes={order.sizes} productId={order._id} customerId={customerId} />
+                        <div className="text-gray-600">
+                          <Text>Name: {order.name}</Text>
+                          <br />
+                          {order.orderSizes &&
+                            Object.entries(order.orderSizes).map(
+                              ([key, value]) => (
+                                <Text key={key}>
+                                  {key}: {value} &nbsp;
+                                </Text>
+                              )
+                            )}
+                          <SizeList
+                            sizes={order.sizes}
+                            productId={order._id}
+                            customerId={customerId}
+                          />
                         </div>
                       }
                     />
@@ -66,11 +78,19 @@ const AddOrders = ({ customerId }) => {
                 )}
               />
             ) : (
-              <Empty description="No orders found" />
+              <Empty
+                description="No orders found"
+                imageStyle={{ height: 60 }}
+                className="py-8"
+              />
             )}
           </>
         ) : (
-          <Empty description="Customer not found" />
+          <Empty
+            description="Customer not found"
+            imageStyle={{ height: 60 }}
+            className="py-8"
+          />
         )}
       </Card>
     </div>
