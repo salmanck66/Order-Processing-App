@@ -23,11 +23,11 @@ const OrdersList = () => {
   };
 
   return (
-    <>
+    <div className="w-fit">
       <div className="w-full flex ">
         <div className=" ms-auto py-5 w-full flex gap-2  justify-end  ">
         <Button className="" onClick={showCreateModal}>
-          Upload Customer
+          Add Customer
           <LuPlus />
         </Button>
        
@@ -35,14 +35,14 @@ const OrdersList = () => {
         </div>
 
         <CreateCustomer
-          title="Upload Customer"
+          title="Add Customer"
           open={isCreateModalOpen}
           onOk={handleCreateOk}
           onCancel={handleCreateCancel}
         />
       </div>
       <CustomersList customer={customer}    />
-    </>
+    </div>
   );
 };
 

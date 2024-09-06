@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaRegTrashCan } from 'react-icons/fa6';
 import { deleteCustomer } from '../../Redux/ordersSlice';
 import CustomerCheckout from './CustomerCheckout';
+
 const CustomersList = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -49,12 +50,10 @@ const CustomersList = () => {
       key: 'products',
     },
     {
-        title: 'Total ',
-        dataIndex: 'total',
-        key: 'total',
-      },
-    
-
+      title: 'Total',
+      dataIndex: 'total',
+      key: 'total',
+    },
     {
       title: 'Action',
       key: 'action',
@@ -65,7 +64,12 @@ const CustomersList = () => {
           okText="Yes"
           cancelText="No"
         >
-          <Button type="primary" className="flex items-center" danger onClick={(e) => e.stopPropagation()}>
+          <Button
+            type="primary"
+            className="flex items-center"
+            danger
+            onClick={(e) => e.stopPropagation()}
+          >
             <FaRegTrashCan className="mr-2" />
             Delete
           </Button>
@@ -79,19 +83,22 @@ const CustomersList = () => {
   };
 
   return (
-    <div className='grid  grid-cols-11 gap-2'>
-        <div className='col-span-8'>
-      <Table
-        columns={columns}
-        dataSource={formattedData.slice((current - 1) * pageSize, current * pageSize)}
-        pagination={false}
-        onRow={(record) => ({
-          onClick: () => handleRowClick(record),
-        })}
-      />
-      <Pagination {...paginationConfig} style={{ marginTop: 16 }} />
-    </div>
-    <CustomerCheckout/>
+    <div className='grid  grid-cols-1 md:grid-cols-11 gap-4'>
+      <div className='col-span-1 md:col-span-8'>
+        <Table
+          columns={columns}
+          dataSource={formattedData.slice((current - 1) * pageSize, current * pageSize)}
+          pagination={false}
+          className='w-full'
+          onRow={(record) => ({
+            onClick: () => handleRowClick(record),
+          })}
+        />
+        <Pagination {...paginationConfig} style={{ marginTop: 16 }} />
+      </div>
+      <div className='col-span-1 md:col-span-2'>
+        <CustomerCheckout />
+      </div>
     </div>
   );
 };

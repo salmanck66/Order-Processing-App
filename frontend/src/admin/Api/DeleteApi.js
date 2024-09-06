@@ -24,5 +24,20 @@ export const deleteProduct = async (id) => {
       throw error.response ? error.response.data : new Error(error.message);
     }
   };
+
+
+  export const deleteReseller = async (id) => {
+    try {
+      
+      const response = await adminInstance.delete(`/deletereseller/${id}`,);
+      console.log('deletereseller', response);
+      return response.data;
+    } catch (error) {
+      console.error('Error deletereseller:', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  };
+  
+
   
   

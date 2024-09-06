@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Table } from 'antd';
-import { fetchResellers } from '../../Api/getApi';
+import { Button, Popconfirm, Table, message } from 'antd';
+import { fetchResellers } from '../../Api/getApi'; // Assuming you have delete API
+import { IoTrashBin } from 'react-icons/io5';
+import { deleteReseller } from '../../Api/DeleteApi';
 
 const ResellersList = () => {
   const [resellers, setResellers] = useState([]);
@@ -13,12 +15,9 @@ const ResellersList = () => {
   useEffect(() => {
     const getResellers = async (page = 1, pageSize = 10) => {
       try {
-        const data = await fetchResellers(); // Update API call if necessary for pagination
-        console.log(data.resellers);
-
+        const data = await fetchResellers(page, pageSize);
         setResellers(data.resellers);
         setPagination({
-          ...pagination,
           current: page,
           pageSize: pageSize,
           total: data.totalCount || data.resellers.length,
@@ -37,6 +36,17 @@ const ResellersList = () => {
       current: pagination.current,
       pageSize: pagination.pageSize,
     });
+  };
+
+  const handleDeleteReseller = async (id) => {
+    try {
+      await deleteReseller(id); // Assuming you have a delete API
+      message.success('Reseller deleted successfully');
+      setResellers(resellers.filter((reseller) => reseller._id !== id)); // Update the list
+    } catch (error) {
+      console.error('Error deleting reseller:', error);
+      message.error('Failed to delete reseller');
+    }
   };
 
   const columns = [
@@ -61,11 +71,24 @@ const ResellersList = () => {
       key: 'createdAt',
       render: (text) => (text ? new Date(text).toLocaleString() : 'N/A'),
     },
+    {
+      title: 'Action',
+      dataIndex: '',
+      key: 'action',
+      render: (record) => (
+        <Popconfirm
+          title="Are you sure you want to delete this reseller?"
+          onConfirm={() => handleDeleteReseller(record._id)}
+        >
+          <Button type="" className='border-red-600'><IoTrashBin className='text-red-600' /></Button>
+        </Popconfirm>
+      ),
+    },
   ];
 
   return (
     <div>
-      <Table 
+      <Table
         dataSource={resellers.map((reseller) => ({ ...reseller, key: reseller._id }))}
         columns={columns}
         pagination={pagination}

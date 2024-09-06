@@ -1,5 +1,5 @@
 import { Anchor, Avatar } from 'antd';
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import Title from '../Components/Title';
 import { MenuOutlined, CloseOutlined } from '@ant-design/icons';
 import { IoIosNotificationsOutline } from "react-icons/io";
@@ -8,19 +8,21 @@ import { Link } from 'react-router-dom';
 const NavBar = () => {
     const [isOpen, setIsOpen] = useState(false);
 
-    const heading = [
-        { id: 1, name: 'Orders' },
-        { id: 2, name: 'Products' },
-        { id: 3, name: 'Account' },
-    ];
+    // Memoize the heading array to avoid recalculating on every render
+    const heading = useMemo(() => [
+        { id: 1, name: 'Orders', label: '' },
+        { id: 2, name: 'Products', label: 'Products' },
+        { id: 3, name: 'Account', label: 'Account' },
+    ], []);
 
-    const toggleMenu = () => {
-        setIsOpen(!isOpen);
-    };
+    // Use useCallback to memoize the toggleMenu function
+    const toggleMenu = useCallback(() => {
+        setIsOpen((prevIsOpen) => !prevIsOpen);
+    }, []);
 
     return (
         <>
-            <div className='bg-neutral mx-1  shadow-lg flex justify-between items-center rounded-2xl rounded-t-none h-12 px-4 md:px-20'>
+            <div className='bg-neutral mx-1 shadow-lg flex justify-between items-center rounded-2xl rounded-t-none min-h-14 px-4 md:px-20'>
                 
                 {/* Mobile Menu Toggle (Left) */}
                 <div className='flex items-center md:hidden'>
@@ -34,32 +36,39 @@ const NavBar = () => {
                     <Title />
                 </div>
                 
-                {/* Shopping Bag Icon & Avatar (Right) */}
-                <div className='flex items-center space-x-4'>
-                    <IoIosNotificationsOutline className='text-2xl text-white md:me-10' />
+                {/* Notification Icon & Avatar (Right) */}
+                <div className='flex items-center space-x-0 '>
+                    <IoIosNotificationsOutline className='text-2xl p-1 rounded-full hover:shadow-2xl cursor-pointer hover:scale-105 md:me-10 bg-white ' />
                     <Avatar size={'small'} className='flex md:hidden' />
                 </div>
                 
                 {/* Desktop Menu */}
-                <div className='hidden md:flex space-x-6 ms-auto me-10'>
-                    {heading.map(item => (
-                        <Link key={item.id} to={`/reseller/${item.name.toLowerCase()}`} className='text-sm font-mono text-white'>
+                <div className='hidden md:flex space-x-3 ms-auto '>
+                    {heading.map((item) => (
+                        <Link 
+                            key={item.id} 
+                            to={`/reseller/${item.label.toLowerCase()}`} 
+                            className='text-sm font-mono  px-4 p-1 shadow-xl  rounded-full bg-white hover:shadow-2xl hover:scale-105'
+                        >
                             {item.name}
                         </Link>
                     ))}
                 </div>
-                
-                {/* User Info (Desktop Only) */}
-               
             </div>
 
             {/* Mobile Dropdown Menu */}
             {isOpen && (
                 <div className='bg-neutral md:hidden flex flex-col space-y-2 p-4 rounded-lg mx-1 mt-2'>
-                    {heading.map(item => (
-                        <a key={item.id} href={`/${item.name.toLowerCase()}`} className='text-white'>
+                    {heading.map((item) => (
+                        <Link 
+                            key={item.id} 
+                            
+                            to={`/reseller/${item.label.toLowerCase()}`} 
+                            onClick={() => setIsOpen(false)}
+                            className='text-white'
+                        >
                             {item.name}
-                        </a>
+                        </Link>
                     ))}
                     <div className='bg-secondary rounded-full h-10 flex items-center justify-between px-3'>
                         <h2>fahiz</h2>

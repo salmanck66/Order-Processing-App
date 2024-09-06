@@ -6,7 +6,7 @@ import OrdersList from "../Specific/Order/OrdersList"
 
 const ResellerOrders = () => {
   return (
-    <div  className="p-5 ">
+    <div  className="p-5 w-full ">
       {/* <SearchBar/>
       <Orders/> */}
 
