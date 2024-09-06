@@ -10,6 +10,7 @@ import moment from "moment";
 import multer from "multer";
 const upload = multer({ storage: multer.memoryStorage() });
 import { uploadToCloudinary } from "../config/cloudinaryConfig.js";
+import qs from 'qs'
 
 export const loginResellers = async (req, res) => {
   try {
@@ -147,101 +148,129 @@ const processOrderSizes = (orderSizes) => {
   }));
 };
 
-export const submitorder = async (req, res) => {
-  try {
-    const data = req.body;
-    const { phone } = req.user;
-    const pdfFiles = req.files; // Get the array of PDF files from the request
+const parseOrderData = (flatData) => {
+  const orders = {};
 
-    // Define the order placement time window
-    const currentTime = moment();
-    const startTime = moment().set({ hour: 20, minute: 0, second: 0 }); // 8 PM today
-    const endTime = moment()
-      .add(1, "day")
-      .set({ hour: 11, minute: 59, second: 59 }); // 11:59 AM the next day
-
-    // Check if the current time is within the allowed window
-    if (!currentTime.isBetween(startTime, endTime)) {
-      return res
-        .status(403)
-        .json({ message: "Orders can only be placed between 8 PM and 12 PM." });
+  Object.keys(flatData).forEach(key => {
+    const match = key.match(/^orders\]\[(\d+)\]\[(.*?)\]$/);
+    if (match) {
+      const [, index, field] = match;
+      if (!orders[index]) orders[index] = {};
+      orders[index][field] = flatData[key];
     }
+  });
 
-    // Find the reseller by phone number
-    const reseller = await Reseller.findOne({ phone });
-    if (!reseller) {
-      return res.status(404).json({ message: "Reseller not found" });
-    }
-
-    // Define the order date
-    const orderDate = moment().startOf("day").toDate();
-
-    // Check if there's an existing order for the reseller today
-    let existingOrder = await Order.findOne({
-      "reseller.id": reseller._id,
-      createdAt: { $gte: orderDate },
-    });
-
-    // Upload PDF to Cloudinary and get the URL using the file buffer
-    const uploadPDFToCloudinary = async (file) => {
-      const fileBuffer = file.buffer; // Assuming Multer or similar is used for file upload
-      const result = await uploadToCloudinary(fileBuffer);
-      return result;
+  return Object.values(orders).map(order => ({
+    ...order,
+    orderSizes: Object.keys(order.orderSizes || {}).map(size => ({
+      size,
+      quantity: order.orderSizes[size]
+    }))
+  }));
+};
+    export const submitorder = async (req, res) => {
+      try {
+        console.log('Request files:', req.files);
+        console.log('Request body:', req.body);
+    
+        // Parse the body using qs (or directly if it's already in the correct format)
+        const decodedBody = qs.parse(req.body);
+    
+        
+        // Check if the files exist
+        const pdfFiles = Object.values(req.files); // Fallback to empty array if files are undefined
+    
+        // Define the order placement time window
+        const currentTime = moment();
+        const startTime = moment().set({ hour: 20, minute: 0, second: 0 }); // 8 PM today
+        const endTime = moment().add(1, "day").set({ hour: 11, minute: 59, second: 59 }); // 11:59 AM the next day
+    
+        // Check if the current time is outside the allowed window
+        if (!currentTime.isBefore(startTime) || currentTime.isAfter(endTime)) {
+          return res.status(403).json({ message: "Orders can only be placed between 8 PM and 12 PM." });
+        }
+    
+        // Find the reseller by phone number
+        const { phone } = req.user; // Assuming phone number is stored in req.user
+        const reseller = await Reseller.findOne({ phone });
+        if (!reseller) {
+          return res.status(404).json({ message: "Reseller not found" });
+        }
+    
+        // Define the order date
+        const orderDate = moment().startOf("day").toDate();
+    
+        // Check if there's an existing order for the reseller today
+        let existingOrder = await Order.findOne({
+          "reseller.id": reseller._id,
+          createdAt: { $gte: orderDate },
+        });
+    
+        // Upload PDF to Cloudinary and get the URL
+       
+    
+        // Process the PDFs, upload to Cloudinary, and get their URLs
+        const pdfUrls = await Promise.all(
+          pdfFiles.map(async (file) => {
+            if (!file || !file.data) {
+              console.log('File with missing data:', file); // Log files with missing data
+              return Promise.reject('no pdf'); // Handle files with missing buffer
+            } 
+            try {
+              const url = await uploadToCloudinary(file.data);
+              return url;
+            } catch (error) {
+              console.error('Error uploading file:', error);
+              return "No PDF"; // Handle upload errors
+            }
+          })
+        );
+    
+    
+        
+    
+        // Prepare the order data
+        const orderData = {
+          reseller: {
+            id: reseller._id,
+            name: reseller.name, // Assuming reseller has a 'name' field
+          },
+          customers: Object.keys(decodedBody).map((key,index) => {
+            const customer = decodedBody[key];
+            return {
+              customerName: customer.customerName,
+              orders: customer.orders.map((order) => ({
+                productId: order._id,
+                orderSizes: Object.keys(order.orderSizes).map(size => ({
+                  size,
+                  quantity: order.orderSizes[size], // Quantity for each size
+                })),
+              })),
+              label: pdfUrls[index], // Assign a label if needed
+            };
+          }),
+          status: false, // or whatever status you want to initialize with
+        };
+    
+        // Save or update the order
+        if (existingOrder) {
+          // Update the existing order
+          existingOrder.customers = orderData.customers;
+          existingOrder.status = orderData.status;
+          await existingOrder.save();
+        } else {
+          // Create a new order
+          const newOrder = new Order(orderData);
+          await newOrder.save();
+        }
+    
+        res.status(200).json({ message: "Order submitted successfully." });
+      } catch (error) {
+        console.error("Error submitting order:", error);
+        res.status(500).json({ message: "An error occurred while submitting the order." });
+      }
     };
 
-    // Process the PDFs, upload to Cloudinary, and get their URLs
-    const pdfUrls = await Promise.all(
-      pdfFiles.map((file) => uploadPDFToCloudinary(file))
-    );
-
-    // Process the data and add to the order
-    if (existingOrder) {
-      data.forEach((product, index) => {
-        existingOrder.customers.push({
-          customerName: product.customerName,
-          label: pdfUrls[index] || "No PDF", // Attach PDF URL
-          orders: product.orders?.map((order) => ({
-            productId: order._id,
-            orderSizes: processOrderSizes(order.orderSizes),
-          })),
-        });
-      });
-
-      await existingOrder.save();
-      return res
-        .status(200)
-        .json({ message: "Order updated successfully", order: existingOrder });
-    } else {
-      const customers = data.map((product, index) => ({
-        customerName: product.customerName,
-        label: pdfUrls[index] || "No PDF", // Attach PDF URL
-        orders: product.orders?.map((order) => ({
-          productId: order._id,
-          orderSizes: processOrderSizes(order.orderSizes),
-        })),
-      }));
-
-      const newOrder = new Order({
-        reseller: {
-          id: reseller._id,
-          name: reseller.name,
-        },
-        customers,
-        createdAt: orderDate,
-      });
-
-      await newOrder.save();
-      return res
-        .status(200)
-        .json({ message: "Order placed successfully", order: newOrder });
-    }
-  } catch (error) {
-    console.error("Error submitting order:", error);
-    return res
-      .status(500)
-      .json({ message: "An error occurred while submitting the order." });
-  }
-};
 
 export const prevOrdersOut = async (req, res) => {
   try {
