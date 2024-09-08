@@ -1,117 +1,94 @@
-import React, { useState } from "react";
-import UploadItem from "../specific/Product/UploadItem";
-import { Button, Form, notification, Modal, Spin, Badge } from "antd";
-import { useForm, useFieldArray } from "react-hook-form";
-import { uploadProducts } from "../Api/postApi";
+import React from 'react';
+import { Link, Outlet } from 'react-router-dom';
+import { Layout, Menu, Avatar, Dropdown, Button } from 'antd';
+import { UserOutlined, DashboardOutlined, ShoppingCartOutlined, AppstoreAddOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
+import Profile from '../components/profile';
 
-const ProductUpload = () => {
-  const [loading, setLoading] = useState(false); 
+const { Header, Sider, Content } = Layout;
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      products: [
-        { name: "", edition: "", sizes: ["S", "M", "L", "XL"], price: "" },
-      ],
-    },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "products",
-  });
-
-  const onSubmit = (data) => {
-    Modal.confirm({
-      title: "Confirm Upload",
-      content: "Are you sure you want to upload these products?",
-      okText: "Yes",
-      cancelText: "No",
-      onOk: () => {
-        setLoading(true); // Start loading
-        const formData = new FormData();
-        data.products.forEach((product, index) => {
-          formData.append(`products[${index}][name]`, product.name);
-          formData.append(`products[${index}][edition]`, product.edition);
-          formData.append(`products[${index}][price]`, product.price);
-          product.images.forEach((image, i) => {
-            formData.append(`products[${index}][images][${i}]`, image);
-          });
-        });
-        uploadProducts(formData)
-          .then(() => {
-            notification.success({
-              message: "Upload Successful",
-              description: "Products have been uploaded successfully.",
-            });
-            reset();
-          })
-          .catch((error) => {
-            notification.error({
-              message: "Upload Failed",
-              description:
-                "There was an error uploading the products. Please try again.",
-            });
-          })
-          .finally(() => {
-            setLoading(false); // Stop loading
-          });
-      },
-    });
-  };
-
-  const addProduct = () => {
-    append({ name: "", edition: "", sizes: ["S", "M", "L", "XL"], price: "" });
-  };
+const AdminLayout = ({ children }) => {
+  const userMenu = (
+    <Menu>
+      <Menu.Item icon={<DashboardOutlined />}>
+        <Link to="/admin">Dashboard</Link>
+      </Menu.Item>
+      <Menu.Item icon={<SettingOutlined />}>
+        <Link to="/admin/settings">Settings</Link>
+      </Menu.Item>
+      <Menu.Item icon={<ShoppingCartOutlined />}>
+        <Link to="/admin/earnings">Earnings</Link>
+      </Menu.Item>
+      <Menu.Item icon={<LogoutOutlined />}>
+        <a href="#">Sign out</a>
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="mx-auto bg-white p-8 rounded shadow-md relative">
-        {loading && (
-          <><Spin
-            tip="Uploading..."
-            className="absolute inset-0 z-50 bg-white flex items-center justify-center" /><Badge status="processing" className="z-50"  text="Please wait until all products are uploaded.  On average, each product takes about 2 seconds to upload. Do not close this window or press the back button. If you have other tasks to do today, feel free to open them in a new tab" /></>
-
-        )}
-        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-          Products Upload
-        </h1>
-        <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
-          {fields.map((field, index) => (
-            <div key={field.id} className="relative">
-              <UploadItem
-                control={control}
-                index={index}
-                errors={errors.products?.[index]} // Pass specific errors for this product
-                remove={remove} // Pass the remove function
-              />
-              <Button
-                onClick={() => remove(index)}
-                className="absolute top-0 right-0 mt-4 mr-4"
-                type="danger"
-              >
-                Remove
-              </Button>
+    <Layout style={{ minHeight: '100vh' }}>
+      <Sider
+        width={240}
+        theme="dark"
+        collapsible
+        collapsedWidth="0"
+      >
+        <div className="logo">
+          <Profile />
+        </div>
+        <Menu
+          mode="inline"
+          theme="dark"
+          defaultSelectedKeys={['1']}
+        >
+          <Menu.Item key="1" icon={<DashboardOutlined />}>
+            <Link to="/admin">Dashboard</Link>
+          </Menu.Item>
+          <Menu.Item key="2" icon={<ShoppingCartOutlined />}>
+            <Link to="/admin/orders">Orders</Link>
+          </Menu.Item>
+          <Menu.Item key="3" icon={<AppstoreAddOutlined />}>
+            <Link to="/admin/products">Products</Link>
+          </Menu.Item>
+          <Menu.Item key="4" icon={<UserOutlined />}>
+            <Link to="/admin/account">Account</Link>
+          </Menu.Item>
+        </Menu>
+      </Sider>
+      <Layout>
+        <Header className="header" style={{ padding: '0 16px', background: '#fff' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Button
+              className="menu-toggle"
+              type="text"
+              icon={<UserOutlined />}
+              style={{ fontSize: '16px' }}
+            />
+            <div>
+              <Dropdown overlay={userMenu} trigger={['click']}>
+                <Avatar
+                  size="large"
+                  icon={<UserOutlined />}
+                  src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+                />
+              </Dropdown>
             </div>
-          ))}
-          <Button onClick={addProduct} className="mt-4" type="primary">
-            Add Item
-          </Button>
-          <Button
-            className="my-4 flex ms-auto"
-            type="primary"
-            htmlType="submit"
+          </div>
+        </Header>
+        <Layout style={{ padding: '24px' }}>
+          <Content
+            style={{
+              padding: 24,
+              margin: 0,
+              minHeight: 280,
+              background: '#fff',
+            }}
           >
-            Upload
-          </Button>
-        </Form>
-      </div>
-    </div>
+            {children}
+          </Content>
+        </Layout>
+      </Layout>
+    </Layout>
   );
 };
 
-export default ProductUpload;
+export default AdminLayout;

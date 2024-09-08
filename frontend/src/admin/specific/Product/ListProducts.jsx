@@ -73,6 +73,12 @@ const ListProducts = ({ searchText }) => {
 
     const columns = useMemo(() => [
         {
+            title: 'Image',
+            dataIndex: 'images',
+            key: 'images',
+            render: (images) => <img className='size-20 object-cover rounded-md' src={images[0]?.url} alt="img" width={50} />,
+        },
+        {
             title: 'Name',
             dataIndex: 'name',
             key: 'name',
@@ -93,6 +99,7 @@ const ListProducts = ({ searchText }) => {
             dataIndex: 'stock',
             key: 'stock',
             render: (stock) => (stock ? 'In Stock' : 'Out of Stock'),
+            responsive: ['sm']
         },
         {
             title: 'Sizes Available',
@@ -100,15 +107,11 @@ const ListProducts = ({ searchText }) => {
             key: 'sizes',
             render: (sizes) => Object.keys(sizes).filter(size => sizes[size]).join(', '),
         },
-        {
-            title: 'Image',
-            dataIndex: 'images',
-            key: 'images',
-            render: (images) => <img className='size-20 object-cover rounded-md' src={images[0]?.url} alt="img" width={50} />,
-        },
+        
         {
             title: '',
             key: 'action',
+            responsive: ['sm'],
             render: (_, record) => (
                 <Popconfirm
                     title="Are you sure you want to delete this product?"
@@ -153,18 +156,22 @@ const ListProducts = ({ searchText }) => {
                     </Button>
                 </Popconfirm>
             )}
-            <Table
-                rowSelection={rowSelection}
-                columns={columns}
-                dataSource={products}
-                rowKey="_id"
-                expandedRowKeys={expandedRowKeys}
-                onExpand={handleExpand}
-                onRow={(record) => ({
-                    onClick: () => handleRowClick(record),
-                })}
-                expandedRowRender={expandedRowRender}
-            />
+           <div className="table-container">
+  <Table
+  scroll={{ x: 'max-content' }} // Horizontal scrolling for the table
+  rowSelection={rowSelection}
+    columns={columns}
+    dataSource={products}
+    rowKey="_id"
+    expandedRowKeys={expandedRowKeys}
+    onExpand={handleExpand}
+    onRow={(record) => ({
+      onClick: () => handleRowClick(record),
+    })}
+    expandedRowRender={expandedRowRender}
+  />
+</div>
+
         </div>
     );
 };

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Table, Card, Button, message, Checkbox } from 'antd';
 import { IoPrintSharp } from "react-icons/io5";
 import { GoFileSubmodule } from "react-icons/go";
-import { ManageOutOffStock } from '../../Api/postApi';
+import { ManageOutOffStock, statusChangeCustomer } from '../../Api/postApi';
 
 const CustomerCard = ({ customer }) => {
   const [selectedSizes, setSelectedSizes] = useState(() => {
@@ -16,25 +16,42 @@ const CustomerCard = ({ customer }) => {
     return initialSizes;
   });
 
-  const handleOrderDone = (customerId) => {
-    console.log(`Order for customer ${customerId} is marked as done.`);
-    message.success('Order marked as done successfully!');
-    // Add any other logic here (e.g., update the order status in the backend)
-    console.log(customer);
+  // Handle marking an order as done
+  const handleOrderDone = async (customerId) => {
+    try {
+      await statusChangeCustomer(customerId);
+      message.success('Order marked as done successfully!');
+      console.log(`Order for customer ${customerId} marked as done.`);
+    } catch (error) {
+      message.error('Failed to mark order as done. Please try again.');
+      console.error('Error marking order as done:', error);
+    }
   };
 
-  const handleSizeChange = (productId, size, checked) => {
-        console.log(productId, size, checked, customer._id);
-        ManageOutOffStock({productId, size,checked,customerId: customer._id})
-    setSelectedSizes((prevSelectedSizes) => ({
-      ...prevSelectedSizes,
-      [productId]: {
-        ...prevSelectedSizes[productId],
-        [size]: checked,
-      },
-    }));
+  // Handle checkbox changes for sizes
+  const handleSizeChange = async (productId, size, checked) => {
+    try {
+      await ManageOutOffStock({
+        productId,
+        size,
+        checked,
+        customerId: customer._id
+      });
+      setSelectedSizes((prevSelectedSizes) => ({
+        ...prevSelectedSizes,
+        [productId]: {
+          ...prevSelectedSizes[productId],
+          [size]: checked,
+        },
+      }));
+      message.success('Stock status updated successfully!');
+    } catch (error) {
+      message.error('Failed to update stock status. Please try again.');
+      console.error('Error updating stock status:', error);
+    }
   };
 
+  // Render sizes with checkboxes
   const renderSizesWithCheckboxes = (sizes, productId) =>
     sizes.map(({ size, quantity }) => (
       <div key={size}>
@@ -47,6 +64,7 @@ const CustomerCard = ({ customer }) => {
       </div>
     ));
 
+  // Table columns
   const columns = [
     {
       title: 'Product Name',
@@ -78,13 +96,17 @@ const CustomerCard = ({ customer }) => {
         <p>No orders available</p>
       )}
       <div className='flex justify-between p-2'>
-        <p>Label: {customer.label}</p>
+        <p className='hidden sm:flex'>Label: {customer.label}</p>
         
         <div className='flex justify-end gap-2'>
           <Button className='bg-blue-600 text-white'>
             Print <IoPrintSharp />
           </Button>
-          <Button className='bg-green-500 text-white' onClick={() => handleOrderDone(customer._id)}>
+          <Button
+          disabled={customer.status}
+            className='bg-green-500 text-white'
+            onClick={() => handleOrderDone(customer._id)}
+          >
             Done <GoFileSubmodule />
           </Button>
         </div>

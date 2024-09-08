@@ -1,16 +1,17 @@
 import React, { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Table, Button, Popconfirm } from 'antd';
 import SizeList from './SizeList';
 import { FaRegTrashCan } from "react-icons/fa6"; // Import the trash icon
 import { deleteOrder } from '../../Redux/ordersSlice';
 import SearchBar from './SearchBar';
-import { responsiveArray } from 'antd/es/_util/responsiveObserver';
+import { LuMoveLeft } from "react-icons/lu";
 
 const CustomerDetails = () => {
     const { customerId } = useParams(); // Get customerId from URL parameters
     const dispatch = useDispatch();
+    const navigate = useNavigate(); // Use useNavigate hook
 
     // Find the customer in the Redux store
     const customer = useSelector(state =>
@@ -24,7 +25,12 @@ const CustomerDetails = () => {
     // Function to handle deleting an order
     const handleDelete = useCallback((orderId) => {
         dispatch(deleteOrder({ customerId, orderId }));
-    }, []);
+    }, [dispatch, customerId]);
+
+    // Function to handle navigating to the previous page
+    const handleGoBack = () => {
+        navigate(-1); // Go back to the previous page
+    };
 
     // Columns configuration for the orders table
     const columns = [
@@ -39,10 +45,10 @@ const CustomerDetails = () => {
             key: 'price',
         },
         {
-          title: 'Total',
-          dataIndex: 'total',
-          key: 'sum',
-      },
+            title: 'Total',
+            dataIndex: 'total',
+            key: 'total',
+        },
         {
             title: 'Order Sizes',
             dataIndex: 'orderSizes',
@@ -61,7 +67,6 @@ const CustomerDetails = () => {
                 </>
             ),
             responsive: ['md'],
-           
         },
         {
             title: 'Sizes',
@@ -75,7 +80,6 @@ const CustomerDetails = () => {
                     productId={order._id}
                 />
             ),
-            
         },
         {
             title: 'Delete',
@@ -100,8 +104,14 @@ const CustomerDetails = () => {
     ];
 
     return (
-        <div className='p-1 md:p-10'>
-          <SearchBar customerId={customerId}/>
+        <div className='p-1 md:p-10 flex flex-col gap-10'>
+            <div className='flex h-full items-center'>
+                <LuMoveLeft 
+                    className='text-2xl hover:scale-105 cursor-pointer' 
+                    onClick={handleGoBack} // Handle click event to go back
+                />
+                <SearchBar customerId={customerId}/>
+            </div>
             <Table
                 dataSource={customer.orders}
                 columns={columns}

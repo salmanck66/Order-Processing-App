@@ -90,3 +90,14 @@ export const onSizeSwitchChange = async (data) => {
     throw error.response ? error.response.data : new Error(error.message);
   }
 };
+
+export const statusChangeCustomer = async (id) => {
+  try {
+    const response = await adminInstance.post('/statuschange', id);
+    console.log('statusChangeCustomer:', response);
+    return response;
+  } catch (error) {
+    console.error('Error statusChangeCustomer:', error);
+    throw error.response ? error.response.data : new Error(error.message);
+  }
+}

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { AutoComplete, Spin } from "antd";
+import { AutoComplete, Spin, notification } from "antd";
 import { IoIosSearch } from "react-icons/io";
 import { SearchProducts } from "../../Api/PostApi";
 import { useDispatch, useSelector } from "react-redux";
 import { addOrder } from "../../Redux/ordersSlice";
-import { notification } from "antd";
 
 const SearchBar = ({ customerId }) => {
   const { customer } = useSelector((state) => state.orders);
@@ -18,11 +17,10 @@ const SearchBar = ({ customerId }) => {
     setSearchTerm(inputValue); // Update the search term state
   };
 
-  const addToOrder = (product, index) => {
-    const orders = customer.filter((item) => item._id === customerId);
-    const productExists = orders[0]?.orders?.some(
-      (order) => order._id === product._id
-    );
+  const addToOrder = (product) => {
+    const orders = customer.find((item) => item._id === customerId);
+
+    const productExists = orders?.orders?.some((order) => order._id === product._id);
 
     if (productExists) {
       notification.info({
@@ -31,7 +29,9 @@ const SearchBar = ({ customerId }) => {
         placement: "topRight",
       });
     } else {
-      dispatch(addOrder({ product, customerId, sum: 0 }));
+      const updatedProduct = { ...product, total: 0 };
+    console.log(updatedProduct);
+      dispatch(addOrder({ product: updatedProduct, customerId, sum: 0 }));
     }
   };
 
@@ -40,7 +40,7 @@ const SearchBar = ({ customerId }) => {
       {options.map((option, index) => (
         <li
           key={index}
-          onClick={() => addToOrder(option.product, index, customerId)}
+          onClick={() => addToOrder(option.product)}
           className="p-2 flex items-center gap-2 hover:bg-gray-200 rounded-lg cursor-pointer"
         >
           <img

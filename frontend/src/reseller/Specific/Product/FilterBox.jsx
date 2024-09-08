@@ -8,8 +8,17 @@ const FilterBox = ({
   setSelectedEditions,
 
 }) => {
-  const editions = ["Fan Version", "Player Version", "First Copy Set", 'Retro', "Other"];
-  const sizes = ["S", "M", "L", "XL", "XXL"];
+  const editions = [
+    "Fan Version",
+    "Player Version",
+    "First Copy Set",
+    "Retro",
+    "Kids set",
+    "Sleeveless Training Set",
+    "Basket Ball Set",
+    "Basketball Master",
+    "Default"
+  ];  const sizes = ["S", "M", "L", "XL", "XXL"];
 
   const handleEditionChange = (checkedValues) => {
     setSelectedEditions(checkedValues);
