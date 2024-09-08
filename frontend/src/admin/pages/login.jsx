@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { notification } from 'antd';
 import { generatePhoneOtp, verifyOtp } from '../Api/postApi';
 import { useNavigate } from 'react-router-dom';
-
+import useAuthenticatedRedirect from '../utils/useAuthenticatedRedirect';
 const Login = () => {
-  const [otpSent, setOtpSent] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otpSent, setOtpSent] = React.useState(false);
+  const [phoneNumber, setPhoneNumber] = React.useState('');
   const { register, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
+  const { isTokenValid, loading } = useAuthenticatedRedirect(); // Use the custom hook
 
   // Show notification
   const openNotification = (type, message) => {
@@ -34,7 +35,7 @@ const Login = () => {
   // Handle OTP submission
   const onOtpSubmit = async (data) => {
     try {
-      const response = await verifyOtp(phoneNumber, data.otp); // Use the stored phoneNumber
+      const response = await verifyOtp(phoneNumber, data.otp);
       console.log('OTP verified successfully:', response);
       openNotification('success', 'OTP verified successfully. You are now logged in.');
       navigate('/admin');
@@ -43,6 +44,17 @@ const Login = () => {
       openNotification('error', 'Failed to verify OTP. Please try again.');
     }
   };
+
+  // Redirect if the user is already authenticated
+  useEffect(() => {
+    if (!loading && isTokenValid) {
+      navigate('/admin');
+    }
+  }, [isTokenValid, loading, navigate]);
+
+  if (loading) {
+    return <div>Loading...</div>; // Display loading state while checking authentication
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -95,7 +107,6 @@ const Login = () => {
                 } rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                 {...register('otp', {
                   required: 'OTP is required',
-                  value: '',
                   pattern: {
                     value: /^[0-9]{6}$/,
                     message: 'Invalid OTP',

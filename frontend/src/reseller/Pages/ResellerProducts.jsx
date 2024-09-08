@@ -27,7 +27,7 @@ const ResellerProducts = () => {
       } catch (error) {
         console.error("Failed to fetch products:", error);
       }
-    }, 500),
+    }, 300),
     [selectedEditions, selectedSizes, stockOnly, searchQuery]
   );
 

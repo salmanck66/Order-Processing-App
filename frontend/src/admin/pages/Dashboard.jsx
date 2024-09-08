@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import OrderLists from '../specific/OrderLists';
 import OrderSummary from '../specific/OrderSummery';
 import { dashboard } from '../Api/getApi';
+import { Statistic } from 'antd';
+import Statistics from '../specific/dashboard/statistics';
+import Graph from '../specific/dashboard/Graph';
 
 const Dashboard = () => {
   const [data, setData] = useState([]);
@@ -26,9 +29,9 @@ const Dashboard = () => {
   const currentItem = data[item] || {};
 
   return (
-    <div className='grid grid-cols-3 gap-4'>
-      {/* <OrderLists data={data} setItem={setItem} />
-      <OrderSummary data={currentItem} /> */}
+    <div className=''>
+      <Statistics/>
+      <Graph/>
     </div>
   );
 };

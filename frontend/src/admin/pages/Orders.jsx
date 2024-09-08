@@ -4,6 +4,9 @@ import ManageOrders from '../specific/Orders/ManageOrders';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
+  const [orderTotalLength, setOrderTotalLength] = useState(0);
+  const [currentOrder, setCurrentOrder] = useState(0);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -12,7 +15,8 @@ const Orders = () => {
       try {
         const data = await fetchOrders();
         console.log(data);
-        
+        setOrderTotalLength(data.orderTotalLength)
+        setCurrentOrder(data.currentOrder)
         setOrders(data.ordersNotCompleted);
       } catch (err) {
         setError(err.message || 'Failed to fetch orders');
@@ -29,7 +33,7 @@ const Orders = () => {
 
   return (
     <div>
-      <ManageOrders orders={orders}/>
+      <ManageOrders orders={orders} currentOrder={currentOrder} orderTotalLength={orderTotalLength}/>
     </div>
   );
 };

@@ -17,7 +17,8 @@ const ordersSlice = createSlice({
       state.totalCustomers = state.totalCustomers + 1;
     },
     addOrder: (state, action) => {
-
+      console.log(action.payload);
+      
       
       // console.log('Dispatching addOrder');
       // console.log('Action Payload:', JSON.stringify(action.payload, null, 2));
@@ -37,15 +38,12 @@ const ordersSlice = createSlice({
       } else {
         state.totalProducts = state.totalProducts + 1;
         const customer = result[0];
-        // console.log('Customer found:', customer);
 
-        // Check if the customer already has an 'orders' array
         if (customer.orders) {
           
           customer.orders.push(action.payload.product);
         } else {
-          // console.log('No orders found, creating a new orders array');
-          // Create an orders array and add the product
+         
           customer.orders = [action.payload.product];
         }
 
@@ -56,8 +54,7 @@ const ordersSlice = createSlice({
         if (customerIndex !== -1) {
           state.customer[customerIndex] = customer;
         }
-
-        // console.log('Updated Customer Orders:', JSON.stringify(state.customer[customerIndex].orders, null, 2));
+        state.totalPrice = isNaN(state.totalPrice) ? 0 : state.totalPrice;
       }
     },
 
@@ -158,18 +155,34 @@ const ordersSlice = createSlice({
 
     deleteCustomer: (state, action) => {
       console.log(action.payload);
-      const sum = state.customer
-        .find((item) => item._id === action.payload)
-        .orders?.reduce((acc, order) => acc + order.total, 0);
-      const count = state.customer.find((item) => item._id === action.payload)
-        .orders.length;
-      state.totalPrice = state.totalPrice - sum;
-      state.totalProducts = state.totalProducts - count;
-      state.customer = state.customer.filter(
-        (item) => item._id !== action.payload
-      );
+      
+    
+      // Find the customer to be deleted
+      const customerToDelete = state.customer.find((item) => item._id === action.payload);
+    console.log(JSON.stringify(customerToDelete));
+    
+      if (customerToDelete && customerToDelete.orders) {
+        // Calculate the sum and count of orders
+        const sum = customerToDelete.orders.reduce((acc, order) => acc + order.total, 0);
+        const count = customerToDelete.orders.length;
+    
+        // Update the totals
+        state.totalPrice = state.totalPrice - sum;
+        
+        // Remove the customer from the state
+        state.totalProducts = state.totalProducts - count;
+        state.customer = state.customer.filter((item) => item._id !== action.payload);
+
+      } else {
+        state.customer = state.customer.filter((item) => item._id !== action.payload);
+        // Handle case where the customer is not found or has no orders
+        console.error(`Customer with ID ${action.payload} not found or has no orders.`);
+      }
+    
+      // Update the total number of customers
       state.totalCustomers = state.totalCustomers - 1;
     },
+    
     submitCustomers :(state) => {
       state.customer = []
       state.totalCustomers = 0

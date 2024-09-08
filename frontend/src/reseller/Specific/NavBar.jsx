@@ -38,7 +38,7 @@ const NavBar = () => {
                 
                 {/* Notification Icon & Avatar (Right) */}
                 <div className='flex items-center space-x-0 '>
-                    <IoIosNotificationsOutline className='text-2xl p-1 rounded-full hover:shadow-2xl cursor-pointer hover:scale-105 md:me-10 bg-white ' />
+                    <IoIosNotificationsOutline className='text-2xl p-1 rounded-full hover:shadow-2xl cursor-pointer hover:scale-105 md:me-10 bg-white ease-in  transition-all  ' />
                     <Avatar size={'small'} className='flex md:hidden' />
                 </div>
                 
@@ -48,7 +48,7 @@ const NavBar = () => {
                         <Link 
                             key={item.id} 
                             to={`/reseller/${item.label.toLowerCase()}`} 
-                            className='text-sm font-mono  px-4 p-1 shadow-xl  rounded-full bg-white hover:shadow-2xl hover:scale-105'
+                            className='text-sm font-mono  px-4 p-1 shadow-xl  rounded-full bg-white hover:shadow-2xl hover:scale-105 ease-in  transition-all  '
                         >
                             {item.name}
                         </Link>

@@ -8,6 +8,30 @@ h1 {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
+  .products-container {
+    padding: 16px;
+}
+
+@media (max-width: 600px) {
+    .ant-table .ant-table-tbody > tr > td {
+        padding: 8px;
+    }
+
+    .ant-table-cell img {
+        width: 40px;
+        height: auto;
+    }
+
+    .ant-table-thead > tr > th {
+        font-size: 12px;
+    }
+
+    .ant-table-tbody > tr > td {
+        font-size: 12px;
+    }
+}
+
+  
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

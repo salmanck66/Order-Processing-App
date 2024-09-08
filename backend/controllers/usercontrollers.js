@@ -143,7 +143,7 @@ const processOrderSizes = (orderSizes) => {
   return Object.entries(orderSizes).map(([size, quantity]) => ({
     size: size,
     quantity: quantity,
-    sizestock: true, // Set default value or modify based on your needs
+    sizestock: true,
   }));
 };
 
@@ -380,5 +380,46 @@ export const productsSearch = async (req, res) => {
 
 export const checkUser = async (req, res) => {
   res.status(200).json({ status: "success" });
+};
+
+export const getOrdersByDate = async (req, res) => {
+  const { phone } = req.user; 
+  
+  try {
+    const resellers = await Reseller.findOne({ phone });
+    
+    if (!resellers) {
+      return res.status(404).json({ message: "Reseller not found" });
+    }
+
+    const { date } = req.query;
+
+    if (!date) {
+      return res.status(400).json({ message: "Date is required" });
+    }
+
+    const selectedDate = new Date(date);
+
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0); 
+
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const orders = await Order.find({
+      'reseller.id': resellers._id,
+      createdAt: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
+    })
+    .populate('reseller.id') // Populate reseller details if needed
+
+    // Send back the orders data
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error('Error fetching orders by date for reseller:', error);
+    res.status(500).json({ message: 'Failed to fetch orders by date for reseller' });
+  }
 };
 

@@ -57,3 +57,14 @@ export const verifyUser = async ( ) => {
     }
 };
 
+// API Call to fetch customers by date
+export const getCustomersByDate = async (dateString) => {
+    try {
+      const response = await userInstance.get(`/CustomersByDate?date=${dateString}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching customers by date:', error);
+      throw error;
+    }
+  };
+
