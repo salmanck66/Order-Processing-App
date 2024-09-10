@@ -10,6 +10,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import Order from "../models/order.js";
+import moment from 'moment';
 
 import {
   generateAccessToken,
@@ -480,37 +481,89 @@ export const updateacc = async (req, res) => {
 
 export const orderstoday = async (req, res) => {
   try {
-    const ordersNotCompleted = await Order.findOne({ status: false })
-      .populate('customers.orders.productId', 'name') // Populate product name
-      .exec();
-    const orderss  =await Order.find()
-      console.log(orderss)
+    // Get today's start and end of the day
+    const startOfToday = moment().startOf('day').toDate();
+    const endOfToday = moment().endOf('day').toDate();
 
-    const orderspending = (await Order.countDocuments()) - ordersNotCompleted.length;
-    const orderTotalLength = await Order.countDocuments();
-    return res.status(200).json({ ordersNotCompleted, orderspending, orderTotalLength });
+    // Find orders created today and not completed
+    const ordersNotCompleted = await Order.findOne({
+      createdAt: { $gte: startOfToday, $lte: endOfToday },
+      status: false,
+    })
+    .populate('customers.orders.productId', 'name') // Populate product name
+    .exec();
+
+    // Get the total count of orders created today
+    const totalOrdersToday = await Order.countDocuments({
+      createdAt: { $gte: startOfToday, $lte: endOfToday },
+    });
+
+    // Calculate pending orders
+    const orderspending = totalOrdersToday - ordersNotCompleted?.length;
+
+    return res.status(200).json({
+      ordersNotCompleted,
+      orderspending,
+      totalOrdersToday,
+    });
   } catch (error) {
+    console.log(error);
+    
     return res.status(500).json({ error: error.message });
   }
 };
 
+export const resellerCompleteOrder = async(req, res) => {
+    const  { orderId} = req.body 
+    console.log(req.body);
+    
+    try {
+      const order = await Order.findById(orderId)
+      if(!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      const checkAllCustomerOrders = order.customers.every(cust => cust.status === true)
+      if (!checkAllCustomerOrders) {
+        return res.status(400).json({ message: "Not all customers have completed their orders"})
+      }
+      order.status = true
+      await order.save()
+      return res.status(200).json({
+        message: "Order completed successfully",
+      })
+    } catch(error) {
+      console.log(error)
+      return res.status(500).json({ error: error.message })
+    }
+}
+
 
 export const statusChange = async (req, res) => {
   try {
-    const { id } = req.body;
+    const { orderId, id } = req.body;
+    console.log(req.body);
+    
+    // Find the order by ID
+    const order = await Order.findById(orderId);
 
-    // Find the order by ID and update its status to true
-    const updatedOrder = await Order.findByIdAndUpdate(
-      id,
-      { status: true },
-      { new: true } // Return the updated document
-    );
-
-    if (!updatedOrder) {
+    if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    return res.status(200).json({ message: 'Status updated successfully', updatedOrder });
+    // Find the customer index within the order's customers array
+    const customerIndex = order.customers.findIndex(cust => cust._id.toString() === id);
+
+    if (customerIndex === -1) {
+      return res.status(404).json({ message: 'Customer not found in the order' });
+    }
+
+    // Update the status of the specified customer
+    order.customers[customerIndex].status = true;
+   
+    // Save the updated order document
+    const updatedOrder = await order.save();
+
+    return res.status(200).json({ message: 'Customer status updated successfully', updatedOrder });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

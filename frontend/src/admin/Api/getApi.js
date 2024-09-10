@@ -36,7 +36,7 @@ export const dashboard = async (phoneNumber, otp) => {
     try {
       const response = await adminInstance.get('/orders');
       console.log('verify Admin:', response);
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error fetchOrders ', error);
       throw error.response ? error.response.data : new Error(error.message);

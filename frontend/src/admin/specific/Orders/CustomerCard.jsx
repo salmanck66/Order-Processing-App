@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Table, Card, Button, message, Checkbox } from 'antd';
+import { Table, Card, Button, message, Checkbox, Tag } from 'antd';
 import { IoPrintSharp } from "react-icons/io5";
 import { GoFileSubmodule } from "react-icons/go";
 import { ManageOutOffStock, statusChangeCustomer } from '../../Api/postApi';
 
-const CustomerCard = ({ customer }) => {
+const CustomerCard = ({ customer, orderId }) => {
   const [selectedSizes, setSelectedSizes] = useState(() => {
     const initialSizes = {};
     customer.orders.forEach((order) => {
@@ -19,7 +19,7 @@ const CustomerCard = ({ customer }) => {
   // Handle marking an order as done
   const handleOrderDone = async (customerId) => {
     try {
-      await statusChangeCustomer(customerId);
+      await statusChangeCustomer(customerId,orderId );
       message.success('Order marked as done successfully!');
       console.log(`Order for customer ${customerId} marked as done.`);
     } catch (error) {
@@ -82,10 +82,21 @@ const CustomerCard = ({ customer }) => {
   return (
     <Card
       key={customer._id}
-      title={`Customer: ${customer.customerName}`}
+      title={
+        <div className='flex  justify-between'>
+          <h2>Customer: {customer.customerName}</h2>
+          {
+            customer.status ? (
+              <Tag color="success">Completed</Tag>
+            ):(
+              <Tag color='cyan-inverse'>Pending</Tag>
+            )
+          }
+        </div>
+      }
       style={{ marginBottom: '20px' }}
     >
-      {customer.orders.length > 0 ? (
+      {customer?.orders?.length > 0 ? (
         <Table
           dataSource={customer.orders}
           columns={columns}
