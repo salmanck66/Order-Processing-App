@@ -91,9 +91,20 @@ export const onSizeSwitchChange = async (data) => {
   }
 };
 
-export const statusChangeCustomer = async (id) => {
+export const statusChangeCustomer = async (id, orderId) => {
   try {
-    const response = await adminInstance.post('/statuschange', id);
+    const response = await adminInstance.post('/statuschange',{ id, orderId});
+    console.log('statusChangeCustomer:', response);
+    return response;
+  } catch (error) {
+    console.error('Error statusChangeCustomer:', error);
+    throw error.response ? error.response.data : new Error(error.message);
+  }
+}
+
+export const submitReseller = async ( orderId) => {
+  try {
+    const response = await adminInstance.post('/resellerCompleteOrder',{ orderId});
     console.log('statusChangeCustomer:', response);
     return response;
   } catch (error) {

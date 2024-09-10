@@ -43,9 +43,7 @@ const ProtectedRouts = () => {
 
   // Render the admin layout if authenticated
   return (
-    <div>
-      <AdminLayout />
-    </div>
+<AdminLayout/>
   );
 };
 

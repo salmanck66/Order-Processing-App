@@ -16,6 +16,7 @@ import {statusChange,
   addUser,
   orderstoday,
   deleteMultipleProducts,
+  resellerCompleteOrder,
 } from "../controllers/admincontrollers.js";
 import { verifyAdmin } from "../middlewares/authAdmin.js";
 
@@ -38,6 +39,7 @@ router.get("/add", ProductPageView);
 router.get("/ordergen", xlsreportgen);  
 router.get('/getallproducts', getAllProducts);
 router.get('/orders',orderstoday)
+router.post('/resellerCompleteOrder', resellerCompleteOrder)
 
 
 router.post("/adduser", addUser);
