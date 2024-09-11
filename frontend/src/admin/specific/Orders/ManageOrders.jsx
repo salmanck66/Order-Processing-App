@@ -1,26 +1,48 @@
-import { Button, Card, message, Empty } from "antd";
-import CustomerCard from "./CustomerCard";
-import { CiCircleChevRight } from "react-icons/ci";
-import { submitReseller } from "../../Api/postApi";
+import React, { useState, useEffect } from 'react';
+import { Card, Button, message, Empty, Spin } from 'antd';
+import CustomerCard from './CustomerCard';
+import { CiCircleChevRight } from 'react-icons/ci';
+import { submitReseller } from '../../Api/postApi';
 
-const ManageOrders = ({ orders, orderTotalLength, currentOrder }) => {
-  // Function to handle changing reseller
+const ManageOrders = ({ orders, orderTotalLength, currentOrder, onNextReseller }) => {
+  const [loading, setLoading] = useState(false);
+  const [allDone, setAllDone] = useState(false);
+
+  // Check if all customers have their status set to true
+  useEffect(() => {
+    if (orders && orders.customers) {
+      const allCompleted = orders.customers.every((cust) => cust.status === true);
+      setAllDone(allCompleted);
+    }
+  }, [orders]);
+
   const handleChangeReseller = async () => {
+    if (!orders) return; // Prevent action if orders is null or undefined
+
+    setLoading(true);
     try {
       await submitReseller(orders._id);
-      // Display success message
-      message.success("Reseller changed successfully!");
+      message.success('Reseller changed successfully!');
+      onNextReseller(); // Call the callback function to refetch orders
     } catch (error) {
-      // Display error message
-      message.error("Failed to change reseller.");
+      message.error('Failed to change reseller.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Callback to handle customer order completion
+  const handleCustomerOrderDone = (status) => {
+    // Update completion status based on customer order completion
+    // Assume status is a boolean indicating if all orders are done
+    setAllDone(status);
+  };
+
   return (
-    <div style={{ padding: "0px" }}>
-      {orders ? (
+    <div style={{ padding: '0px' }}>
+      {orders && orders.customers ? (
         <Card
-          className="bg-[#0000002a] "
+          className="bg-[#0000002a]"
           key={orders._id}
           title={
             <div className="flex justify-between items-center">
@@ -34,22 +56,24 @@ const ManageOrders = ({ orders, orderTotalLength, currentOrder }) => {
               </div>
             </div>
           }
-          style={{ marginBottom: "20px" }}
+          style={{ marginBottom: '20px' }}
         >
-          {orders.customers?.map((customer) => (
+          {orders.customers.map((customer) => (
             <CustomerCard
               orderId={orders._id}
               key={customer._id}
               customer={customer}
+              onOrderDone={handleCustomerOrderDone}
             />
           ))}
           <div className="flex justify-end">
             <Button
-              className="bg-green-500 text-white "
-              disabled={orders.customers.every((cust) => cust.status === false)}
+              className="bg-green-500 text-white"
+              disabled={!allDone || loading}
               onClick={handleChangeReseller}
             >
-              Next Reseller <CiCircleChevRight className="text-xl" />
+              {loading ? <Spin size="small" /> : 'Next Reseller'}
+              <CiCircleChevRight className="text-xl" />
             </Button>
           </div>
         </Card>

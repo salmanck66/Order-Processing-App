@@ -95,7 +95,7 @@ export const statusChangeCustomer = async (id, orderId) => {
   try {
     const response = await adminInstance.post('/statuschange',{ id, orderId});
     console.log('statusChangeCustomer:', response);
-    return response;
+    return response.data;
   } catch (error) {
     console.error('Error statusChangeCustomer:', error);
     throw error.response ? error.response.data : new Error(error.message);

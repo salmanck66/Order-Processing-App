@@ -19,6 +19,8 @@ import {
   verifyRefreshToken,
 } from "../utils/tokenGen.js";
 import {  uploadToCloudinary } from "../config/cloudinaryConfig.js";
+import { monthlyStatus } from "../helpers/monthleyStatus.js";
+import { status } from "../helpers/dashBoardStatus.js";
 
 // Temporary in-memory storage for OTPs
 let otpStorage = {};
@@ -129,8 +131,10 @@ export const logout = async (req, res) => {
 
 // Dashboard View
 export const Dashboard = async (req, res) => {
-  console.log('fasd');
-  res.send("Admin Home");
+  const graphData = await monthlyStatus()
+  const statusData = await status()
+    
+  res.status(200).json({graphData, statusData})
 };
 
 // Resellers View
@@ -143,7 +147,6 @@ export const Resellers = async (req, res) => {
 export const ProductPageView = async (req, res) => {
   try {
     const searchQuery = req.query.q;
-    console.log("Search Query:", searchQuery);
 
     // Fetch data from the database, filtering products that contain the search query in their name
     const data = await Product.find({
@@ -163,7 +166,6 @@ export const ProductPageView = async (req, res) => {
 export const addUser = async (req, res) => {
   try {
     const { phone, email, name } = req.body;
-    console.log(phone, email, name);
 
     // Generate a random password
     const password = crypto.randomBytes(8).toString("hex");
@@ -528,7 +530,11 @@ export const resellerCompleteOrder = async(req, res) => {
       }
       order.status = true
       await order.save()
+     
+      
+      
       return res.status(200).json({
+        status,
         message: "Order completed successfully",
       })
     } catch(error) {
@@ -559,11 +565,12 @@ export const statusChange = async (req, res) => {
 
     // Update the status of the specified customer
     order.customers[customerIndex].status = true;
-   
+    const status = order.customers.every((cust) => cust.status === true)
+      console.log('status',status);
     // Save the updated order document
     const updatedOrder = await order.save();
 
-    return res.status(200).json({ message: 'Customer status updated successfully', updatedOrder });
+    return res.status(200).json({ message: 'Customer status updated successfully',status, updatedOrder });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

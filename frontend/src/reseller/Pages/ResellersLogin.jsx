@@ -16,7 +16,7 @@ const ResellersLogin = () => {
   }
   
   if (isTokenValid) {
-    navigate('/reseller/orders');
+    navigate('/reseller');
     return null; // Prevent further rendering
   }
 
