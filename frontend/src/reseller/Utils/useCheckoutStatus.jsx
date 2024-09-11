@@ -4,12 +4,10 @@ import { useSelector } from 'react-redux';
 const useCheckoutStatus = () => {
   const [checkoutStatus, setCheckoutStatus] = useState(false);
   const { customer } = useSelector((state) => state.orders);
+console.log(customer);
 
   useEffect(() => {
-    // Disable checkout if:
-    // - No customers
-    // - Any customer has no orders
-    // - Any order has no sizes or all sizes have 0 quantity
+ 
     const isCheckoutDisabled = !customer || customer.length === 0 || 
       !customer.every(cust => 
         cust.orders && cust.orders.length > 0 && 

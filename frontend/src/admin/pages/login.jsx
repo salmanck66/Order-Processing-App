@@ -28,7 +28,7 @@ const Login = () => {
       openNotification('success', 'OTP has been sent to your phone number.');
     } catch (error) {
       console.error('Failed to generate OTP:', error);
-      openNotification('error', 'Failed to generate OTP. Please try again.');
+      openNotification('error', error.message);
     }
   };
 
@@ -41,7 +41,7 @@ const Login = () => {
       navigate('/admin');
     } catch (error) {
       console.error('Failed to verify OTP:', error);
-      openNotification('error', 'Failed to verify OTP. Please try again.');
+      openNotification('error', error.message);
     }
   };
 

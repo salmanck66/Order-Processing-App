@@ -16,8 +16,10 @@ const ResellerAccount = () => {
     const getProfileData = async () => {
       try {
         const response = await fetchProfile();
-        const customerData = response.customers || [];
+        const customerData = response.customers 
         setCustomers(customerData);
+        console.log(response.customers);
+        
         setOriginalCustomers(customerData); // Store original customer data
         setProfile(response.reseller || {});
       } catch (error) {

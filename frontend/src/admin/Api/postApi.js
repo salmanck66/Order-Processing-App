@@ -112,3 +112,4 @@ export const submitReseller = async ( orderId) => {
     throw error.response ? error.response.data : new Error(error.message);
   }
 }
+

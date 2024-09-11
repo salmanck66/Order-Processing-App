@@ -31,7 +31,7 @@ const ResellersLogin = () => {
       });
       
       // Redirect to the reseller page
-      navigate('/reseller/orders');
+      navigate('/reseller');
 
     } catch (error) {
       // Handle unexpected errors

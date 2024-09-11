@@ -1,19 +1,15 @@
 import axios from "axios"; 
 
 export const adminInstance = axios.create({
-    baseURL: 'http://localhost:3000/admin',
-    withCredentials: true,
-   
-    
-        
-})
-
+    baseURL: `${import.meta.env.VITE_URL}/admin`,
+    withCredentials: true
+});
 
 export const userInstance = axios.create({
-    baseURL: 'http://localhost:3000/user',
+    baseURL: `${import.meta.env.VITE_URL}/user`,
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
         timeout: 1000
-        }
-})
+    }
+});
