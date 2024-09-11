@@ -58,7 +58,15 @@ export const dashboard = async (phoneNumber, otp) => {
     }
   };
   
-  
+  export const handleAdminLogout = async ( ) => {
+    try {
+      const response = await adminInstance.get('/logout');
+      return response;
+    } catch (error) {
+      console.error('Error logout:', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  }
 
   
   

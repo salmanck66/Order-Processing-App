@@ -69,7 +69,9 @@ const ResellersList = () => {
       title: 'Created At',
       dataIndex: 'createdAt',
       key: 'createdAt',
+  
       render: (text) => (text ? new Date(text).toLocaleString() : 'N/A'),
+      responsive: ['sm']
     },
     {
       title: 'Action',

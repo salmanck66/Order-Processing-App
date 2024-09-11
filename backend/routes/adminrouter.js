@@ -30,7 +30,7 @@ router.post("/bulk-upload" , bulkUploadProducts);
 
 // Apply token verification middleware globally for the routes below
 // Routes that require token verification
-router.post("/logout", logout);
+router.get("/logout", logout);
 router.get("/", Dashboard);
 router.get("/verify-admin", verifyAdmin);
 router.get("/resellers", Resellers);
