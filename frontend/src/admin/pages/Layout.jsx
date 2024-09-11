@@ -2,12 +2,20 @@ import React, { useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { FaBars } from 'react-icons/fa';
 import { UserOutlined, DashboardOutlined, ShoppingCartOutlined, AppstoreAddOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
-import { Avatar } from 'antd';
+import { Avatar, Popconfirm } from 'antd';
+import { handleAdminLogout } from '../Api/getApi';
 function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const [selectedItem, setSelectedItem] = useState('dashboard'); // default selected item
+  const [selectedItem, setSelectedItem] = useState('dashboard');
 
+  const handleLogout = () => {
+    handleAdminLogout().then(() => {
+      navigate('/admin/login');
+    }).catch((error) => {
+      console.error('Logout failed:', error);
+    });
+  };
   return (
     <>
       <div className="relative md:flex  h-screen ">
@@ -92,7 +100,14 @@ function Sidebar() {
   </li>
   <li className="flex items-center space-x-3 text-gray-300 hover:text-blue-300 transition-colors duration-200">
     <LogoutOutlined />
-    <button className="font-semibold text-red-500">Logout</button>
+    <Popconfirm
+      title="Are you sure you want to logout?"
+      onConfirm={handleLogout}
+      okText="Yes"
+      cancelText="No"
+    >
+      <button className="font-semibold text-red-500">Logout</button>
+    </Popconfirm>
   </li>
 </ul>
 

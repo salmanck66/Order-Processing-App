@@ -5,6 +5,8 @@ import Information from './information';
 import { getCustomersByDate } from '../Api/getApi';
 
 const ListCustomers = ({ customers, setCustomers, loading, resetCustomers }) => {
+  console.log('customers', customers);
+  
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 5;
 
@@ -24,7 +26,7 @@ const ListCustomers = ({ customers, setCustomers, loading, resetCustomers }) => 
       title: 'Orders Count',
       dataIndex: 'orders',
       key: 'orders',
-      render: (orders) => orders.length, // Display number of orders
+      render: (orders) => orders?.length, // Display number of orders
     },
     {
       title: 'Label',
@@ -35,7 +37,7 @@ const ListCustomers = ({ customers, setCustomers, loading, resetCustomers }) => 
   ];
 
   // Slice data for current page
-  const paginatedData = customers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedData = customers?.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   // Handle date picker change
   const onChange = async (date, dateString) => {
@@ -48,7 +50,9 @@ const ListCustomers = ({ customers, setCustomers, loading, resetCustomers }) => 
 
     try {
       const data = await getCustomersByDate(dateString);
-      setCustomers(data); // Update customers state with the filtered data
+      console.log(data[0]?.customers);
+      
+      setCustomers(data[0]?.customers); // Update customers state with the filtered data
       setCurrentPage(1);  // Reset pagination when new data is loaded
     } catch (error) {
       console.error('Failed to fetch customers by date:', error);
@@ -73,7 +77,7 @@ const ListCustomers = ({ customers, setCustomers, loading, resetCustomers }) => 
           <Spin size="large" />
           <span className="ml-2 text-lg">Loading customers...</span>
         </div>
-      ) : customers.length === 0 ? (
+      ) : customers?.length === 0 ? (
         <Empty description="No customers found for the selected date range." />
       ) : (
         <>
@@ -86,12 +90,12 @@ const ListCustomers = ({ customers, setCustomers, loading, resetCustomers }) => 
           />
           <div className="text-center">
             <span className="text-sm">
-              Page {currentPage} of {Math.ceil(customers.length / pageSize)}
+              Page {currentPage} of {Math.ceil(customers?.length / pageSize)}
             </span>
             <Pagination
-              current={currentPage}
+              current={customers}
               pageSize={pageSize}
-              total={customers.length}
+              total={customers?.length}
               onChange={handlePageChange}
               showSizeChanger={false}
               style={{ marginTop: 16 }}
