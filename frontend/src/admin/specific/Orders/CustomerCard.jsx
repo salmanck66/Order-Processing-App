@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Table, Card, Button, message, Checkbox, Tag } from 'antd';
-import { IoPrintSharp } from "react-icons/io5";
-import { GoFileSubmodule } from "react-icons/go";
+import React, { useState, useEffect } from 'react';
+import { Table, Card, Button, message, Checkbox, Tag, Spin } from 'antd';
+import { IoPrintSharp } from 'react-icons/io5';
+import { GoFileSubmodule } from 'react-icons/go';
 import { ManageOutOffStock, statusChangeCustomer } from '../../Api/postApi';
 
-const CustomerCard = ({ customer, orderId }) => {
+const CustomerCard = ({ customer, orderId, onOrderDone }) => {
   const [selectedSizes, setSelectedSizes] = useState(() => {
     const initialSizes = {};
     customer.orders.forEach((order) => {
@@ -16,26 +16,37 @@ const CustomerCard = ({ customer, orderId }) => {
     return initialSizes;
   });
 
-  // Handle marking an order as done
+  const [loading, setLoading] = useState(false);
+  const [orderDone, setOrderDone] = useState(customer.status);
+
+  useEffect(() => {
+    setOrderDone(customer.status);
+  }, [customer.status]);
+
   const handleOrderDone = async (customerId) => {
+    setLoading(true);
     try {
-      await statusChangeCustomer(customerId,orderId );
+      const response = await statusChangeCustomer(customerId, orderId);
+      console.log(response);
+
+      setOrderDone(true); // Set orderDone to true only on success
+      onOrderDone(response.status); // Notify parent component
       message.success('Order marked as done successfully!');
-      console.log(`Order for customer ${customerId} marked as done.`);
     } catch (error) {
       message.error('Failed to mark order as done. Please try again.');
-      console.error('Error marking order as done:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle checkbox changes for sizes
   const handleSizeChange = async (productId, size, checked) => {
+    setLoading(true);
     try {
       await ManageOutOffStock({
         productId,
         size,
         checked,
-        customerId: customer._id
+        customerId: customer._id,
       });
       setSelectedSizes((prevSelectedSizes) => ({
         ...prevSelectedSizes,
@@ -47,11 +58,11 @@ const CustomerCard = ({ customer, orderId }) => {
       message.success('Stock status updated successfully!');
     } catch (error) {
       message.error('Failed to update stock status. Please try again.');
-      console.error('Error updating stock status:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Render sizes with checkboxes
   const renderSizesWithCheckboxes = (sizes, productId) =>
     sizes.map(({ size, quantity }) => (
       <div key={size}>
@@ -64,7 +75,6 @@ const CustomerCard = ({ customer, orderId }) => {
       </div>
     ));
 
-  // Table columns
   const columns = [
     {
       title: 'Product Name',
@@ -75,7 +85,8 @@ const CustomerCard = ({ customer, orderId }) => {
       title: 'Sizes & Quantities',
       dataIndex: 'orderSizes',
       key: 'orderSizes',
-      render: (sizes, record) => renderSizesWithCheckboxes(sizes, record.productId._id),
+      render: (sizes, record) =>
+        renderSizesWithCheckboxes(sizes, record.productId._id),
     },
   ];
 
@@ -83,15 +94,13 @@ const CustomerCard = ({ customer, orderId }) => {
     <Card
       key={customer._id}
       title={
-        <div className='flex  justify-between'>
+        <div className='flex justify-between'>
           <h2>Customer: {customer.customerName}</h2>
-          {
-            customer.status ? (
-              <Tag color="success">Completed</Tag>
-            ):(
-              <Tag color='cyan-inverse'>Pending</Tag>
-            )
-          }
+          {orderDone ? (
+            <Tag color='success'>Completed</Tag>
+          ) : (
+            <Tag color='cyan-inverse'>Pending</Tag>
+          )}
         </div>
       }
       style={{ marginBottom: '20px' }}
@@ -100,7 +109,7 @@ const CustomerCard = ({ customer, orderId }) => {
         <Table
           dataSource={customer.orders}
           columns={columns}
-          rowKey="_id"
+          rowKey='_id'
           pagination={false}
         />
       ) : (
@@ -108,17 +117,16 @@ const CustomerCard = ({ customer, orderId }) => {
       )}
       <div className='flex justify-between p-2'>
         <p className='hidden sm:flex'>Label: {customer.label}</p>
-        
         <div className='flex justify-end gap-2'>
           <Button className='bg-blue-600 text-white'>
             Print <IoPrintSharp />
           </Button>
           <Button
-          disabled={customer.status}
+            disabled={orderDone || loading}
             className='bg-green-500 text-white'
             onClick={() => handleOrderDone(customer._id)}
           >
-            Done <GoFileSubmodule />
+            {loading ? <Spin size='small' /> : 'Done'} <GoFileSubmodule />
           </Button>
         </div>
       </div>

@@ -7,16 +7,18 @@ import Statistics from '../specific/dashboard/statistics';
 import Graph from '../specific/dashboard/Graph';
 
 const Dashboard = () => {
-  const [data, setData] = useState([]);
+  const [graphData, setgraphData] = useState([]);
+  const [status,setStatus] = useState([])
   const [item, setItem] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await dashboard();
-        console.log(response);
-        // Assuming response is the data you need, set it to state
-        // setData(response);
+        console.log('response', response);
+        setgraphData(response.graphData)
+
+        setStatus(response.statusData)
       } catch (error) {
         console.log('Error fetching data:', error);
       }
@@ -25,13 +27,11 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
-  // Ensure item is within the bounds of the data array
-  const currentItem = data[item] || {};
 
   return (
     <div className=''>
-      <Statistics/>
-      <Graph/>
+      <Statistics status={status} />
+      <Graph graphData={graphData}/>
     </div>
   );
 };

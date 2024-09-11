@@ -11,25 +11,30 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const getOrders = async () => {
-      try {
-        const data = await fetchOrders();
-        console.log(data);
-        setOrderTotalLength(data.data.totalOrdersToday);
-        setCurrentOrder(data.currentOrder);
-        setOrders(data.data.ordersNotCompleted);
-        console.log(data.data.ordersNotCompleted);
-        
-      } catch (err) {
-        setError(err.message || 'Failed to fetch orders');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const getOrders = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchOrders();
+      console.log(data);
+      setOrderTotalLength(data.data.totalOrdersToday);
+      setCurrentOrder(data.currentOrder);
+      setOrders(data.data.ordersNotCompleted);
+      console.log(data.data.ordersNotCompleted);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch orders');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     getOrders();
   }, []);
+
+  const handleNextReseller = async () => {
+    // Trigger the fetchOrders function to get updated data
+    await getOrders();
+  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -37,10 +42,14 @@ const Orders = () => {
   return (
     <div>
       {orders?.length === 0 ? (
-    
         <Empty description="No orders available" />
       ) : (
-        <ManageOrders orders={orders} currentOrder={currentOrder} orderTotalLength={orderTotalLength} />
+        <ManageOrders
+          orders={orders}
+          currentOrder={currentOrder}
+          orderTotalLength={orderTotalLength}
+          onNextReseller={handleNextReseller} // Pass the callback function
+        />
       )}
     </div>
   );
