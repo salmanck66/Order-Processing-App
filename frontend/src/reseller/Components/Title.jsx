@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-const Title = () => {
+const Title = ({name}) => {
   return (
     <>
     <Link to={'/reseller'} className='text-white'>

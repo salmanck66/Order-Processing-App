@@ -12,6 +12,19 @@ const orderSizeSchema = new mongoose.Schema({
   },
 });
 
+const customizationSchema = new mongoose.Schema({
+  name: {
+    type: String,
+  },
+  number: {
+    type: Number,
+  },
+  type: {
+    type: String,
+    enum: ["size", "color"],  // Customization type, e.g., size or color
+  }
+});
+
 const orderSchema = new mongoose.Schema({
   reseller: {
     id: {
@@ -41,6 +54,15 @@ const orderSchema = new mongoose.Schema({
             type: [orderSizeSchema],
             required: true,
           },
+          customizations: {
+            type: [customizationSchema],  // Including the customization schema here
+            required: false,  // Customization can be optional based on product type
+          },
+          badge: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Badge',  // Reference to Badge schema
+            required: false,  // Badge is optional
+          }
           status: {
             type: Boolean,
             default: false,
@@ -69,4 +91,4 @@ const orderSchema = new mongoose.Schema({
 
 
 const Order = mongoose.model('Order', orderSchema);
-export default Order;
+export default Order

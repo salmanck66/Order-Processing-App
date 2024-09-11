@@ -32,14 +32,14 @@ const AddOrders = ({ customerId }) => {
 
   return (
     <div className="container mx-auto p-4">
-      <Card bordered={false} className="shadow-lg rounded-lg">
-        <Title level={4} className="text-center text-blue-600">
-          Customer Created Successfully!
+      <Card bordered={false} className="shadow-lg rounded-lg flex gap-0 flex-col items-center justify-center">
+        <Title level={4} className=" text-sm text-blue-600">
+          Customer Has Been Added , Please Select Products
         </Title>
 
         {customer ? (
           <>
-            <SearchBar customerId={customerId} />
+            <SearchBar  customerId={customerId} />
 
             <Divider />
 

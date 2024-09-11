@@ -16,6 +16,11 @@ const ListCustomers = ({ customers, setCustomers, loading, resetCustomers }) => 
   // Define columns for the table
   const columns = [
     {
+      title: 'Order Date',
+      dataIndex: 'Date',
+      key: 'Date',
+    },
+    {
       title: 'Customer Name',
       dataIndex: 'customerName',
       key: 'customerName',

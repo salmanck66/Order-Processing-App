@@ -33,7 +33,7 @@ const NavBar = () => {
 
                 {/* Title (Center) */}
                 <div className='flex-1 flex justify-center md:justify-start'>
-                    <Title />
+                    <Title  />
                 </div>
                 
                 {/* Notification Icon & Avatar (Right) */}

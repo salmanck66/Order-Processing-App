@@ -40,6 +40,11 @@ const CustomerDetails = () => {
             key: 'name',
         },
         {
+            title: "Edition",
+            dataIndex: ["id", "edition"],
+            key: "edition",
+          },
+        {
             title: 'Price',
             dataIndex: 'price',
             key: 'price',
@@ -62,7 +67,7 @@ const CustomerDetails = () => {
                             </div>
                         ))
                     ) : (
-                        <div>No sizes available</div>
+                        <div>No sizes selected</div>
                     )}
                 </>
             ),
