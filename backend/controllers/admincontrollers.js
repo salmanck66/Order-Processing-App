@@ -765,26 +765,24 @@ export const toggleOrderStatus = async (req, res) => {
 export const addBadge = async (req, res) => {
   try {
     const { name, price } = req.body;
-    const imageFile = req.file;  // Single file from multer
-
+    const imageFile = req.files?.badgeImage; 
+    
     // Check if the required fields are provided
     if (!name || !price || !imageFile) {
       return res.status(400).json({ message: "Please provide all required fields (name, price, and image)" });
     }
 
     // Upload the image to Cloudinary
-    const uploadResult = await uploadToCloudinary(imageFile);
-
+    const uploadResult = await uploadToCloudinary(imageFile.data);
+    
     // Create a new badge with the uploaded image data
     const newBadge = new Badge({
       name,
       price,
-      images: [
-        {
-          url: uploadResult.secure_url,
-          public_id: uploadResult.public_id,
-        },
-      ],
+      image: { 
+        url: uploadResult,
+      },
+
     });
 
     // Save the badge to the database
