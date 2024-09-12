@@ -113,3 +113,19 @@ export const submitReseller = async ( orderId) => {
   }
 }
 
+// API function for badge creation
+export const createBadge = async (formData) => {
+  try {
+    const response = await adminInstance.post('/uploadbadge', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    console.log('uploadbadge:', response);
+    return response;
+  } catch (error) {
+    console.error('Error uploadbadge:', error);
+    throw error.response ? error.response.data : new Error(error.message);
+  }
+};
+
