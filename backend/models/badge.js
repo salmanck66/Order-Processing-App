@@ -12,6 +12,10 @@ const badgeSizeSchema = new mongoose.Schema({
   image: {  // Renamed to `image` for a single image
     url: { type: String, required: true },
   },
+  stock:{
+    type:Boolean,
+    default:true
+  }
 });
 
 const Badge = mongoose.model("Badge", badgeSizeSchema);

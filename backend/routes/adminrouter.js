@@ -3,7 +3,7 @@ import {statusChange,
   requestOTP, stockoutMake,
   verifyOTPAndLogin,getAllProducts,
   updateacc,toggleOrderStatus,
-  logout,badgeslist,
+  logout,badgeslist,toggleBadgeStatus,
   xlsreportgen,
   editproduct,ProductStockOut,
   deletereseller,
@@ -47,6 +47,7 @@ router.post('/addproducts', addproduct);
 router.post('/orderitemstockout', stockoutMake);
 router.post('/productsizestockout', ProductStockOut);
 router.post('/orderreject',toggleOrderStatus)
+router.post('/badgeStockOut',toggleBadgeStatus)
 router.post('/uploadbadge',addBadge)
 
 router.put("/editproduct/:id", editproduct);

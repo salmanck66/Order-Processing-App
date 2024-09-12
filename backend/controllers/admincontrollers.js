@@ -772,6 +772,38 @@ export const toggleOrderStatus = async (req, res) => {
     res.status(500).json({ message: 'An error occurred while toggling the order status' });
   }
 };
+export const toggleBadgeStatus = async (req, res) => {
+  try {
+    const { badgeId } = req.params; // Parameters expected from the request
+
+    // Validate parameters
+    if (!badgeId) {
+      return res.status(400).json({ message: 'Missing required badgeId' });
+    }
+
+    // Find the badge by ID
+    const badgeItem = await Badge.findById(badgeId);
+    
+    // If no badge is found, return an error
+    if (!badgeItem) {
+      return res.status(404).json({ message: 'Badge not found' });
+    }
+
+    // Toggle the badge stock status
+    badgeItem.stock = !badgeItem.stock; // Toggle the stock status (true to false, false to true)
+
+    // Save the updated badge item
+    await badgeItem.save();
+
+    // Return a success response with the updated badge info
+    res.status(200).json({ message: 'Badge stock status toggled successfully', badge: badgeItem });
+  } catch (error) {
+    console.error('Error toggling badge status:', error);
+    res.status(500).json({ message: 'An error occurred while toggling the badge stock status' });
+  }
+};
+
+
 
 export const addBadge = async (req, res) => {
   try {
