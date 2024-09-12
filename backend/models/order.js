@@ -62,7 +62,7 @@ const orderSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Badge',  // Reference to Badge schema
             required: false,  // Badge is optional
-          }
+          },
           status: {
             type: Boolean,
             default: false,
