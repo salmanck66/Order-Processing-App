@@ -10,7 +10,7 @@ console.log(customer);
  
     const isCheckoutDisabled = !customer || customer.length === 0 || 
       !customer.every(cust => 
-        cust.orders && cust.orders.length > 0 && 
+        cust.orders && cust.file &&  cust.orders.length > 0 && 
         cust.orders.every(order => 
           order.orderSizes && 
           Object.values(order.orderSizes).some(sizeQuantity => sizeQuantity > 0)
