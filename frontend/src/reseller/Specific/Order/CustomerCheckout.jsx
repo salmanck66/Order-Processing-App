@@ -11,7 +11,6 @@ const CustomerCheckout = () => {
   
   const [loading, setLoading] = useState(false);
   const status = useCheckoutStatus(); // Assuming status indicates whether it's okay to submit
-  console.log(status);
 
   // Check if customer data is empty
   const handleSubmit = async () => {
