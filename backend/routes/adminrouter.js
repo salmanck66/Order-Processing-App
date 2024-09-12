@@ -3,7 +3,7 @@ import {statusChange,
   requestOTP, stockoutMake,
   verifyOTPAndLogin,getAllProducts,
   updateacc,toggleOrderStatus,
-  logout,
+  logout,badgeslist,
   xlsreportgen,
   editproduct,ProductStockOut,
   deletereseller,
@@ -35,6 +35,7 @@ router.get("/", Dashboard);
 router.get("/verify-admin", verifyAdmin);
 router.get("/resellers", Resellers);
 router.get("/products", ProductPageView);
+router.get("/badgesList", badgeslist);
 router.get("/add", ProductPageView);
 router.get("/ordergen", xlsreportgen);  
 router.get('/getallproducts', getAllProducts);
