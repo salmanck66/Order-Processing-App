@@ -10,7 +10,7 @@ import {statusChange,
   deleteproduct,
   addproduct,
   Dashboard,
-  Resellers,
+  Resellers,addBadge,
   bulkUploadProducts,
   ProductPageView,
   addUser,
@@ -48,6 +48,7 @@ router.post('/addproducts', addproduct);
 router.post('/orderitemstockout', stockoutMake);
 router.post('/productsizestockout', ProductStockOut);
 router.post('/orderreject',toggleOrderStatus)
+router.post('/uploadbadge',addBadge)
 
 router.put("/editproduct/:id", editproduct);
 router.put("/updateacc", updateacc);

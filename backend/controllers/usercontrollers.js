@@ -12,6 +12,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 import { uploadToCloudinary } from "../config/cloudinaryConfig.js";
 import qs from 'qs'
 
+
 export const loginResellers = async (req, res) => {
   try {
     const { phone, password } = req.body;
@@ -169,13 +170,15 @@ const parseOrderData = (flatData) => {
 };
 export const submitorder = async (req, res) => {
   try {
+    console.log("getting")
     if (!req.files && req.body) {
       return res.status(404).json({ message: "Cannot submit without body" });
     }
+    console.log()
 
     // Parse the body using qs (or directly if it's already in the correct format)
     const decodedBody = qs.parse(req.body);
-    console.log('Decoded Body:', decodedBody); // Debugging
+    console.log('Decoded Body:', req.body); // Debugging
 
     // Check if the files exist
     const pdfFiles = Object.values(req.files) || []; // Fallback to empty array if files are undefined
@@ -240,6 +243,7 @@ export const submitorder = async (req, res) => {
         label: pdfUrls[index] || 'No PDF URL', // Default value if missing
       };
     });
+
 
     // Save or update the order
     if (existingOrder) {

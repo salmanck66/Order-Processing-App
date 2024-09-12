@@ -11,6 +11,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import Order from "../models/order.js";
 import moment from 'moment';
+import Badge from "../models/badge.js";
 
 import {
   generateAccessToken,
@@ -29,6 +30,7 @@ let otpStorage = {};
 export const requestOTP = async (req, res) => {
   const { phoneNumber } = req.body || "";
   console.log(phoneNumber);
+
   try {
     if (phoneNumber !== process.env.ADMIN_PHONE_NUMBER) {
   console.log('as',process.env.ADMIN_PHONE_NUMBER);
@@ -757,5 +759,47 @@ export const toggleOrderStatus = async (req, res) => {
   } catch (error) {
     console.error('Error toggling order status:', error);
     res.status(500).json({ message: 'An error occurred while toggling the order status' });
+  }
+};
+
+export const addBadge = async (req, res) => {
+  try {
+    const { name, price } = req.body;
+    const imageFile = req.file;  // Single file from multer
+
+    // Check if the required fields are provided
+    if (!name || !price || !imageFile) {
+      return res.status(400).json({ message: "Please provide all required fields (name, price, and image)" });
+    }
+
+    // Upload the image to Cloudinary
+    const uploadResult = await uploadToCloudinary(imageFile);
+
+    // Create a new badge with the uploaded image data
+    const newBadge = new Badge({
+      name,
+      price,
+      images: [
+        {
+          url: uploadResult.secure_url,
+          public_id: uploadResult.public_id,
+        },
+      ],
+    });
+
+    // Save the badge to the database
+    await newBadge.save();
+
+    // Respond with success and the created badge
+    res.status(201).json({
+      message: "Badge created successfully",
+      badge: newBadge,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Error creating badge",
+      error: error.message,
+    });
   }
 };
