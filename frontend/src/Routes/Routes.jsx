@@ -15,6 +15,7 @@ import ResellerOrders from "../reseller/Pages/ResellerOrders";
 import PreviousOrder from "../reseller/Pages/PreviousOrder";
 import OrderDetailByDate from "../reseller/Pages/OrderDetailByDate";
 import CustomerDetails from "../reseller/Specific/Order/CustomerDetails";
+import Badge from "../admin/pages/Badge";
 
 export const Routes = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ export const Routes = createBrowserRouter([
               {
                 path: "products",
                 element: <Products />,
+              },
+              {
+                path: "badge",
+                element: <Badge/>,
               },
               {
                 path: "account",

@@ -78,6 +78,17 @@ function Sidebar() {
       <span className="font-semibold">Products</span>
     </li>
   </Link>
+  <Link 
+    to="/admin/badge" 
+    className={`flex items-center px-4 py-2 space-x-3 text-gray-300 hover:text-blue-300 transition-colors duration-200 cursor-pointer 
+    ${selectedItem === 'badge' ? 'bg-gray-700 border rounded-lg' : ''}`} 
+    onClick={() => setSelectedItem('badge')}
+  >
+    <li className="flex items-center space-x-3">
+      <AppstoreAddOutlined />
+      <span className="font-semibold">Badge</span>
+    </li>
+  </Link>
 
   <Link 
     to="/admin/account" 
