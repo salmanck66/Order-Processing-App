@@ -64,3 +64,5 @@ export const fetchProducts = async (data) => {
         throw error;
     }
 };
+
+

@@ -17,6 +17,7 @@ import {statusChange,
   orderstoday,
   deleteMultipleProducts,
   resellerCompleteOrder,
+  deleteBadge,
 } from "../controllers/admincontrollers.js";
 import { verifyAdmin } from "../middlewares/authAdmin.js";
 
@@ -47,7 +48,7 @@ router.post('/addproducts', addproduct);
 router.post('/orderitemstockout', stockoutMake);
 router.post('/productsizestockout', ProductStockOut);
 router.post('/orderreject',toggleOrderStatus)
-router.post('/badgeStockOut',toggleBadgeStatus)
+router.post('/badgeStockOut/:badgeId', toggleBadgeStatus);
 router.post('/uploadbadge',addBadge)
 
 router.put("/editproduct/:id", editproduct);
@@ -55,6 +56,7 @@ router.put("/updateacc", updateacc);
 
 router.delete("/deleteproduct/:id", deleteproduct);
 router.delete("/deleteMultipleProductsByIds", deleteMultipleProducts);
+router.delete('/deleteBadge/:badgeId', deleteBadge)
 
 router.delete("/deletereseller/:id", deletereseller);
 

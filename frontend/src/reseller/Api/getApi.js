@@ -68,3 +68,18 @@ export const getCustomersByDate = async (dateString) => {
     }
   };
 
+
+  export const fetchBadge = async (search) => {
+    try {
+      console.log(search);
+      const params = { search: search };
+
+      const response = await userInstance.get('/badgesList', { params });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetchBadge ', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  };
+

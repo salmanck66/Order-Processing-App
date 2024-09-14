@@ -15,15 +15,16 @@ const CustomerDetails = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate(); // Use useNavigate hook
 
-    // Modal visibility state
+    // State to manage the expanded order for inline modal
+    const [expandedRowKey, setExpandedRowKey] = useState(null);
+    // State to manage the visibility of the customization modal
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [selectedOrder, setSelectedOrder] = useState(null); // Store selected order for customization
 
     // Find the customer in the Redux store
     const customer = useSelector(state =>
         state.orders.customer.find(customer => customer._id === customerId)
     );
-    console.log(customer);
 
     if (!customer) {
         return <div>Customer not found</div>;
@@ -39,37 +40,40 @@ const CustomerDetails = () => {
         navigate(-1); // Go back to the previous page
     };
 
-    // Function to show the modal
+    // Toggle the expanded row (modal under row)
+    const toggleExpandRow = (orderId) => {
+        setExpandedRowKey((prevOrderId) => (prevOrderId === orderId ? null : orderId));
+    };
+
+    // Function to open the customization modal
     const showModal = (order) => {
-        setSelectedOrder(order); // Set the selected order for customization
+        setSelectedOrder(order); // Set the order for customization
         setIsModalVisible(true); // Show the modal
     };
 
-    // Function to close the modal
-    const handleCancel = () => {
-        setIsModalVisible(false);
-        setSelectedOrder(null); // Clear selected order when modal is closed
+    // Function to close the customization modal
+    const handleModalCancel = () => {
+        setIsModalVisible(false); // Hide the modal
+        setSelectedOrder(null); // Clear the selected order
     };
 
     // Columns configuration for the orders table
     const columns = [
         {
-            title: 'Product Name ',
+            title: 'Product Name',
             key: 'nameEdition',
             render: (order) => (
                 <span>
-                    {order.name} 
-                    <span className=' '>{order.edition && `- ${order.edition}`}</span>
+                    {order.name}
+                    <span>{order.edition && `- ${order.edition}`}</span>
                 </span>
             ),
         },
-        
         {
             title: 'Price',
             dataIndex: 'price',
             key: 'price',
         },
-        
         {
             title: 'Order Sizes',
             dataIndex: 'orderSizes',
@@ -94,19 +98,28 @@ const CustomerDetails = () => {
             dataIndex: 'sizes',
             key: 'sizes',
             render: (sizes, order) => (
-                <SizeList
-                    sizes={sizes}
-                    customerId={customerId}
-                    orderSizes={order.orderSizes}
-                    productId={order._id}
-                />
+                <div onClick={(e) => e.stopPropagation()}> {/* Prevent row expansion on size selection */}
+                    <SizeList
+                        sizes={sizes}
+                        customerId={customerId}
+                        orderSizes={order.orderSizes}
+                        productId={order._id}
+                    />
+                </div>
             ),
         },
         {
             title: 'Custom',
             key: 'Cust',
             render: (_, order) => (
-                <Button className='m-0 p-0 px-2 mx-auto flex' type='' onClick={() => showModal(order)}>
+                <Button
+                    className='m-0 p-0 px-2 mx-auto flex'
+                    type=''
+                    onClick={(e) => {
+                        e.stopPropagation(); // Prevent row expansion on button click
+                        showModal(order); // Show customization modal
+                    }}
+                >
                     <h1 className="hidden md:flex h-full items-center gap-2">
                         <MdOutlineDashboardCustomize />
                         Customization
@@ -140,28 +153,62 @@ const CustomerDetails = () => {
     return (
         <div className='p-1 md:p-10 flex flex-col gap-10'>
             <div className='flex h-full items-center'>
-                <LuMoveLeft 
-                    className='text-2xl hover:scale-105 cursor-pointer' 
+                <LuMoveLeft
+                    className='text-2xl hover:scale-105 cursor-pointer'
                     onClick={handleGoBack} // Handle click event to go back
                 />
-                <SearchBar customerId={customerId}/>
+                <SearchBar customerId={customerId} />
             </div>
             <Table
-                dataSource={customer.orders}
-                columns={columns}
-                rowKey="_id"
-                pagination={false}
-                scroll={{ x: '100%' }}
-            />
+    dataSource={customer.orders}
+    columns={columns}
+    rowKey="_id"
+    pagination={false}
+    scroll={{ x: '100%' }}
+    expandable={{
+        expandedRowRender: (order) => (
+            <div>
+                <h2 className="text-2xl font-semibold mb-2">Customization Details</h2>
+                {order.customizations && order.customizations.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {order.customizations.map((custom, index) => (
+                            <div
+                                key={index}
+                                className="p-4 border border-gray-300 rounded-md shadow-md"
+                            >
+                                <p><strong>Name:</strong> {custom.name}</p>
+                                <p><strong>Number:</strong> {custom.number}</p>
+                                <p><strong>Size:</strong> {custom.size}</p>
+                                <p><strong>Product Type:</strong> {custom.productType}</p>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p>No customization details available.</p>
+                )}
+            </div>
+        ),
+        rowExpandable: (order) => !!order, // Ensure rows are expandable
+        expandedRowKeys: expandedRowKey ? [expandedRowKey] : [], // Manage expanded row key
+        onExpand: (expanded, order) => {
+            toggleExpandRow(order._id);
+        }
+    }}
+    onRow={(order) => ({
+        onClick: () => toggleExpandRow(order._id), // Toggle row expansion on row click
+    })}
+/>
+``
 
-            {/* Modal for customization */}
+
+            {/* Customization Modal */}
             <Modal
                 title="Customize Order"
                 visible={isModalVisible}
-                onCancel={handleCancel}
-                footer={null} // You can customize footer buttons if needed
+                onCancel={handleModalCancel}
+                footer={null} // No footer buttons
             >
-                <CustomizeOrder selectedOrder={selectedOrder} />
+                <CustomizeOrder selectedOrder={selectedOrder} customerId={customerId} />
             </Modal>
         </div>
     );

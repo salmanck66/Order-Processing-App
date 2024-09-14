@@ -427,3 +427,14 @@ export const getOrdersByDate = async (req, res) => {
   }
 };
 
+export const badgeslist = async (req, res) => {
+  try {
+
+    const data = await Badge.find() || "No Badges"
+
+    res.status(200).json({ badge: data });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ message: "Error fetching products" });
+  }
+};

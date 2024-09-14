@@ -774,8 +774,9 @@ export const toggleOrderStatus = async (req, res) => {
 };
 export const toggleBadgeStatus = async (req, res) => {
   try {
-    const { badgeId } = req.params; // Parameters expected from the request
-
+    const { badgeId } = req.params;
+    console.log('badgeId', badgeId);
+    
     // Validate parameters
     if (!badgeId) {
       return res.status(400).json({ message: 'Missing required badgeId' });
@@ -800,6 +801,32 @@ export const toggleBadgeStatus = async (req, res) => {
   } catch (error) {
     console.error('Error toggling badge status:', error);
     res.status(500).json({ message: 'An error occurred while toggling the badge stock status' });
+  }
+};
+
+
+export const deleteBadge = async (req, res) => {
+  try {
+    const { badgeId } = req.params;
+
+    // Validate parameters
+    if (!badgeId) {
+      return res.status(400).json({ message: 'Missing required badgeId' });
+    }
+
+    // Find and delete the badge by ID
+    const deletedBadge = await Badge.findByIdAndDelete(badgeId);
+
+    // If no badge is found, return an error
+    if (!deletedBadge) {
+      return res.status(404).json({ message: 'Badge not found' });
+    }
+
+    // Return a success response
+    res.status(200).json({ message: 'Badge deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting badge:', error);
+    res.status(500).json({ message: 'An error occurred while deleting the badge' });
   }
 };
 

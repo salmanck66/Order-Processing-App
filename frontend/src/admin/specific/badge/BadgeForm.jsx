@@ -4,7 +4,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import { useForm } from 'react-hook-form';
 import { createBadge } from '../../Api/postApi';
 
-const BadgeForm = () => {
+const BadgeForm = ({ onBadgeCreated }) => { // Receive onBadgeCreated prop
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm();
   const [badgeImage, setBadgeImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -29,7 +29,7 @@ const BadgeForm = () => {
 
   // Notification helper functions
   const openNotificationWithIcon = (type, messageText, description) => {
-    message[type]({
+    message[type]( {
       content: (
         <>
           <strong>{messageText}</strong>
@@ -56,9 +56,10 @@ const BadgeForm = () => {
       const response = await createBadge(formData);
       openNotificationWithIcon('success', 'Badge Created', 'The badge has been successfully created.');
       console.log('Form submitted:', response.data);
-      reset()
-      setBadgeImage(null)
-      setImagePreview(null)
+      reset();
+      setBadgeImage(null);
+      setImagePreview(null);
+      if (onBadgeCreated) onBadgeCreated(); // Notify parent component
     } catch (error) {
       openNotificationWithIcon('error', 'Error', error.message || 'Something went wrong.');
     } finally {
@@ -68,6 +69,7 @@ const BadgeForm = () => {
 
   return (
     <Form
+    
       onFinish={handleSubmit(onSubmit)}
       style={{ maxWidth: '600px', margin: 'auto' }}
       layout="vertical"
