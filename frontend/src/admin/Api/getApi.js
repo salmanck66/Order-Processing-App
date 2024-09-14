@@ -68,5 +68,23 @@ export const dashboard = async (phoneNumber, otp) => {
     }
   }
 
+  export const fetchBadge = async (search) => {
+    try {
+      console.log(search);
+      const params = { search: search };
+
+      const response = await adminInstance.get('/badgesList', { params });
+
+      console.log('fetchBadge', response);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetchBadge ', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  };
+
+
+  
+
   
   

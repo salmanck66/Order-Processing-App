@@ -40,4 +40,17 @@ export const deleteProduct = async (id) => {
   
 
   
+  export const deleteBadge = async (id) => {
+    try {
+      
+      const response = await adminInstance.delete(`/deleteBadge/${id}`,);
+      console.log('deleteBadge', response);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleteBadge:', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  };
+
+  
   

@@ -19,6 +19,9 @@ const customizationSchema = new mongoose.Schema({
   number: {
     type: Number,
   },
+  size: {
+    type: String,
+  },
   type: {
     type: String,
     enum: ["Vinyl", "DTF","ORIGINAL(RETROS)"],  // Customization type, e.g., size or color

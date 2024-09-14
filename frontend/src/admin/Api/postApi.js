@@ -129,3 +129,15 @@ export const createBadge = async (formData) => {
   }
 };
 
+
+export const badgeStockOut = async (badgeId) => {
+  console.log(badgeId);
+  
+  try {
+      const response = await adminInstance.post(`/badgeStockOut/${badgeId}`,);
+      return response.data;
+  } catch (error) {
+      console.error('Error badge stock  password:', error);
+      throw error;
+  }
+};

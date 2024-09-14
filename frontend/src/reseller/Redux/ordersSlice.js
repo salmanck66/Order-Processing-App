@@ -188,7 +188,97 @@ const ordersSlice = createSlice({
       state.totalCustomers = 0
       state.totalProducts = 0
       state.totalPrice = 0
-    }
+    },
+    addCustomization: (state, action) => {
+      // Extract customerId, productId (order), and customization from the payload
+      const { customerId, productId, customization } = action.payload;
+    
+      // Find the index of the customer with the matching customerId
+      const customerIndex = state.customer.findIndex(
+        (customer) => customer._id === customerId
+      );
+    
+      if (customerIndex === -1) {
+        // Customer not found
+        console.warn("No customer found with the provided customerId");
+        return state; // Return the unchanged state
+      }
+    
+      // Extract the found customer
+      const customer = state.customer[customerIndex];
+    
+      // Find the index of the order within the customer's orders
+      const orderIndex = customer.orders.findIndex(
+        (order) => order._id === productId
+      );
+    
+      if (orderIndex === -1) {
+        // Order not found
+        console.warn("No order found with the provided productId");
+        return state; // Return the unchanged state
+      }
+    
+      // Add the customization to the order's customizations array
+      if (!customer.orders[orderIndex].customizations) {
+        customer.orders[orderIndex].customizations = []; // Initialize if empty
+      }
+      customer.orders[orderIndex].customizations.push(customization);
+    
+      // Update the customer in the state
+      state.customer[customerIndex] = customer;
+    
+      console.log(
+        `Added customization to order ${productId} for customer ${customerId}:`,
+        JSON.stringify(state.customer, null, 2)
+      );
+    },
+ // ordersSlice.js
+ addBadges: (state, action) => {
+  const { customerId, productId, badges } = action.payload;
+
+  const customerIndex = state.customer.findIndex(
+    (customer) => customer._id === customerId
+  );
+
+  if (customerIndex === -1) {
+    console.warn("No customer found with the provided customerId");
+    return state;
+  }
+
+  const customer = state.customer[customerIndex];
+  const orderIndex = customer.orders.findIndex(
+    (order) => order._id === productId
+  );
+
+  if (orderIndex === -1) {
+    console.warn("No order found with the provided productId");
+    return state;
+  }
+
+  const order = customer.orders[orderIndex];
+
+  // Initialize badges if undefined
+  if (!order.badges) {
+    order.badges = [];
+  }
+
+  // Add new badges for the order
+  badges.forEach(({ size, badges: newBadges }) => {
+    // Directly push the new set of badges for the size
+    order.badges.push({ size, badges: [...newBadges] });
+  });
+
+  state.customer[customerIndex] = customer;
+
+  console.log(
+    `Added badges to order ${productId} for customer ${customerId}:`,
+    JSON.stringify(badges, null, 2)
+  );
+},
+
+    
+
+    
   },
 });
 
@@ -199,6 +289,8 @@ export const {
   deleteOrder,
   updateOrder,
   clearOrders,
+  addCustomization,
   submitCustomers,
+  addBadges,
 } = ordersSlice.actions;
 export default ordersSlice.reducer;
