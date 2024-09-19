@@ -5,11 +5,12 @@ import ListBadges from './ListBadges';
 import { useDispatch } from 'react-redux';
 import { addCustomization } from '../../Redux/ordersSlice';
 
-const CustomizeOrder = ({ selectedOrder, customerId }) => {
+const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
   const [badges, setBadges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedBadges, setSelectedBadges] = useState([]);
+  const [form] = Form.useForm(); // Initialize form instance
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -62,18 +63,27 @@ const CustomizeOrder = ({ selectedOrder, customerId }) => {
     return stockForSize <= customizationsForSize; // Disable if stock is exhausted
   };
 
-  const onFinish = (customization) => {
+  const onFinish = async (customization) => {
     if (!selectedSize) {
       message.error('Please select a size!');
       return;
     }
-    dispatch(
-      addCustomization({
-        customerId: customerId,
-        productId: selectedOrder._id,
-        customization: customization,
-      })
-    );
+    try {
+      await dispatch(
+        addCustomization({
+          customerId: customerId,
+          productId: selectedOrder._id,
+          customization: { ...customization, size: selectedSize, badges: selectedBadges },
+        })
+      );
+      message.success('Customization added successfully!');
+      form.resetFields(); // Clear the form data
+      setSelectedSize(''); // Clear selected size
+      setSelectedBadges([]); // Clear selected badges
+      handleModalCancel(); // Close the modal after successful submission
+    } catch {
+      message.error('Failed to add customization');
+    }
   };
 
   return (
@@ -84,7 +94,12 @@ const CustomizeOrder = ({ selectedOrder, customerId }) => {
             <Spin size="large" />
           ) : (
             <div className="flex flex-col items-center space-y-2">
-              <Form layout="vertical" onFinish={onFinish} className="w-full">
+              <Form
+                layout="vertical"
+                onFinish={onFinish}
+                className="w-full"
+                form={form} // Attach the form instance
+              >
                 <div className="flex flex-col md:flex-row md:space-x-6 md:space-y-4 md:space-y-0">
                   <Form.Item
                     name="name"
@@ -99,10 +114,7 @@ const CustomizeOrder = ({ selectedOrder, customerId }) => {
                     name="number"
                     label="Phone Number"
                     className="w-full md:w-1/2"
-                    rules={[
-                      { required: true, message: 'Please input your number!' },
-                      { pattern: /^[0-9]+$/, message: 'Number must be digits!' },
-                    ]}
+                    rules={[{ required: true, message: 'Please input your number!' }, { pattern: /^[0-9]+$/, message: 'Number must be digits!' }]}
                   >
                     <Input placeholder="Enter your number" />
                   </Form.Item>

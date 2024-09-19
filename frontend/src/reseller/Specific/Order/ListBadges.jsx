@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { addBadges } from '../../Redux/ordersSlice';
 import useCheckAvailabilityForCustomization from '../../Utils/useCheckAvailabilityForCustomization';
@@ -7,34 +7,49 @@ import { IoCloseCircle } from 'react-icons/io5';
 
 const { Option } = Select;
 
-const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadgeSelect }) => {
+const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadgeSelect, handleModalCancel }) => {
   const [selectedSize, setSelectedSize] = useState(null);
   const dispatch = useDispatch();
-
+  
   // Get availability data
   const availabilityData = useCheckAvailabilityForCustomization(selectedOrder._id, customerId, selectedSize);
 
+  // Handle badge click
   const handleBadgeClick = (badge) => {
     onBadgeSelect(badge);
   };
 
+  // Handle size selection
   const handleSizeSelect = (value) => {
     setSelectedSize(value);
   };
 
+  // Handle submission
   const handleSubmit = () => {
+    if (!selectedSize) {
+      return; // Exit if no size is selected
+    }
+
     dispatch(
       addBadges({
         badges: [{ size: selectedSize, badges: selectedBadges.map((item) => item._id) }],
         productId: selectedOrder._id,
         customerId: customerId,
       })
-    );
+    ).then(() => {
+      // Clear form data and close modal
+      setSelectedSize(null);
+      onBadgeSelect([]); // Clear selected badges
+      handleModalCancel(); // Close modal after dispatch is successful
+    }).catch((error) => {
+      console.error('Error adding badges:', error);
+      // You might want to show an error message here
+    });
   };
 
   // Calculate the number of selected badges for a specific size
   const calculateSelectedBadgeCountForSize = (size) => {
-    return selectedOrder.badges?.filter((badge) => badge.size === size).length;
+    return selectedOrder?.badges?.filter((badge) => badge.size === size).length;
   };
 
   // Check if a badge is available for the selected size
@@ -55,7 +70,7 @@ const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadge
             <Menu.Item
               key={badge._id}
               className={`cursor-pointer ${selectedBadges?.some((b) => b._id === badge._id) ? 'bg-blue-500' : ''}`}
-              onClick={() =>  handleBadgeClick(badge)}
+              onClick={() => handleBadgeClick(badge)}
             >
               <div className={`cursor-pointer flex ${isBadgeDisabled ? 'bg-gray-300' : 'bg-red-500'} items-center w-[300px] border rounded-lg p-2`}>
                 <img
@@ -76,6 +91,10 @@ const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadge
     </Menu>
   );
 
+  useEffect(() => {
+    // Re-fetch availability data when selectedOrder or selectedSize changes
+  }, [selectedOrder, selectedSize]);
+
   return (
     <div className="rounded-lg p-6 ms-auto">
       {/* Size selection */}
@@ -89,7 +108,6 @@ const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadge
           Object.keys(selectedOrder.orderSizes).map((size) => {
             const availableStock = selectedOrder.orderSizes[size];
             const selectedBadgeCount = calculateSelectedBadgeCountForSize(size);
-            console.log(selectedBadgeCount, availableStock);
             
             // Disable the size if the available stock minus the selected badge count for this size is less than or equal to zero
             const isSizeDisabled = availableStock - selectedBadgeCount <= 0;

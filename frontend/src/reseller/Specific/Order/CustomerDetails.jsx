@@ -1,63 +1,59 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Table, Button, Popconfirm, Modal } from 'antd';
 import SizeList from './SizeList';
-import { FaRegTrashCan } from "react-icons/fa6"; // Import the trash icon
-import { deleteOrder } from '../../Redux/ordersSlice';
+import { FaRegTrashCan } from "react-icons/fa6";
+import { deleteOrder } from '../../Redux/ordersSlice'; // Ensure fetchCustomer is imported
 import SearchBar from './SearchBar';
 import { LuMoveLeft } from "react-icons/lu";
 import { MdOutlineDashboardCustomize } from "react-icons/md";
 import CustomizeOrder from './CustomizeOrder';
-
+import { fetchProducts } from '../../Api/PostApi';
+fetchProducts
 const CustomerDetails = () => {
-    const { customerId } = useParams(); // Get customerId from URL parameters
+    const { customerId } = useParams();
     const dispatch = useDispatch();
-    const navigate = useNavigate(); // Use useNavigate hook
+    const navigate = useNavigate();
 
-    // State to manage the expanded order for inline modal
     const [expandedRowKey, setExpandedRowKey] = useState(null);
-    // State to manage the visibility of the customization modal
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState(null); // Store selected order for customization
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
-    // Find the customer in the Redux store
     const customer = useSelector(state =>
         state.orders.customer.find(customer => customer._id === customerId)
     );
+
+    useEffect(() => {
+        
+    }, [dispatch, customerId, customer]);
 
     if (!customer) {
         return <div>Customer not found</div>;
     }
 
-    // Function to handle deleting an order
     const handleDelete = useCallback((orderId) => {
         dispatch(deleteOrder({ customerId, orderId }));
     }, [dispatch, customerId]);
 
-    // Function to handle navigating to the previous page
     const handleGoBack = () => {
-        navigate(-1); // Go back to the previous page
+        navigate(-1);
     };
 
-    // Toggle the expanded row (modal under row)
     const toggleExpandRow = (orderId) => {
         setExpandedRowKey((prevOrderId) => (prevOrderId === orderId ? null : orderId));
     };
 
-    // Function to open the customization modal
     const showModal = (order) => {
-        setSelectedOrder(order); // Set the order for customization
-        setIsModalVisible(true); // Show the modal
+        setSelectedOrder(order);
+        setIsModalVisible(true);
     };
 
-    // Function to close the customization modal
     const handleModalCancel = () => {
-        setIsModalVisible(false); // Hide the modal
-        setSelectedOrder(null); // Clear the selected order
+        setIsModalVisible(false);
+        setSelectedOrder(null);
     };
 
-    // Columns configuration for the orders table
     const columns = [
         {
             title: 'Product Name',
@@ -155,60 +151,60 @@ const CustomerDetails = () => {
             <div className='flex h-full items-center'>
                 <LuMoveLeft
                     className='text-2xl hover:scale-105 cursor-pointer'
-                    onClick={handleGoBack} // Handle click event to go back
+                    onClick={handleGoBack}
                 />
                 <SearchBar customerId={customerId} />
             </div>
             <Table
-    dataSource={customer.orders}
-    columns={columns}
-    rowKey="_id"
-    pagination={false}
-    scroll={{ x: '100%' }}
-    expandable={{
-        expandedRowRender: (order) => (
-            <div>
-                <h2 className="text-2xl font-semibold mb-2">Customization Details</h2>
-                {order.customizations && order.customizations.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {order.customizations.map((custom, index) => (
-                            <div
-                                key={index}
-                                className="p-4 border border-gray-300 rounded-md shadow-md"
-                            >
-                                <p><strong>Name:</strong> {custom.name}</p>
-                                <p><strong>Number:</strong> {custom.number}</p>
-                                <p><strong>Size:</strong> {custom.size}</p>
-                                <p><strong>Product Type:</strong> {custom.productType}</p>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p>No customization details available.</p>
-                )}
-            </div>
-        ),
-        rowExpandable: (order) => !!order, // Ensure rows are expandable
-        expandedRowKeys: expandedRowKey ? [expandedRowKey] : [], // Manage expanded row key
-        onExpand: (expanded, order) => {
-            toggleExpandRow(order._id);
-        }
-    }}
-    onRow={(order) => ({
-        onClick: () => toggleExpandRow(order._id), // Toggle row expansion on row click
-    })}
-/>
-``
-
-
-            {/* Customization Modal */}
+                dataSource={customer.orders}
+                columns={columns}
+                rowKey="_id"
+                pagination={false}
+                scroll={{ x: '100%' }}
+                expandable={{
+                    expandedRowRender: (order) => (
+                        <div>
+                            <h2 className="text-2xl font-semibold mb-2">Customization Details</h2>
+                            {order.customizations && order.customizations.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {order.customizations.map((custom, index) => (
+                                        <div
+                                            key={index}
+                                            className="p-4 border border-gray-300 rounded-md shadow-md"
+                                        >
+                                            <p><strong>Name:</strong> {custom.name}</p>
+                                            <p><strong>Number:</strong> {custom.number}</p>
+                                            <p><strong>Size:</strong> {custom.size}</p>
+                                            <p><strong>Product Type:</strong> {custom.productType}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p>No customization details available.</p>
+                            )}
+                        </div>
+                    ),
+                    rowExpandable: (order) => !!order,
+                    expandedRowKeys: expandedRowKey ? [expandedRowKey] : [],
+                    onExpand: (expanded, order) => {
+                        toggleExpandRow(order._id);
+                    }
+                }}
+                onRow={(order) => ({
+                    onClick: () => toggleExpandRow(order._id),
+                })}
+            />
             <Modal
                 title="Customize Order"
                 visible={isModalVisible}
                 onCancel={handleModalCancel}
-                footer={null} // No footer buttons
+                footer={null}
             >
-                <CustomizeOrder selectedOrder={selectedOrder} customerId={customerId} />
+                <CustomizeOrder 
+                    handleModalCancel={handleModalCancel} 
+                    selectedOrder={selectedOrder} 
+                    customerId={customerId} 
+                />
             </Modal>
         </div>
     );
