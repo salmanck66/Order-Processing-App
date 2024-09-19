@@ -19,13 +19,9 @@ const ordersSlice = createSlice({
     addOrder: (state, action) => {
       console.log(action.payload);
       
-      
-      // console.log('Dispatching addOrder');
-      // console.log('Action Payload:', JSON.stringify(action.payload, null, 2));
 
-      // Accessing the customer array
-      const customers = [...state.customer]; // Converting Proxy to plain array
-      // console.log('Current Customers:', JSON.stringify(customers, null, 2));
+
+      const customers = [...state.customer];
 
       // Filtering based on customerId
       const result = customers.filter(
