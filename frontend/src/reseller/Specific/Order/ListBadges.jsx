@@ -1,15 +1,18 @@
-import React, { useState } from 'react'; // Import useState
-import PropTypes from 'prop-types';
-import { Dropdown, Menu, Button, Select } from 'antd'; // Import Select component
-import 'antd/dist/reset.css'; // Ensure Ant Design styles are included
-import { IoCloseCircle } from 'react-icons/io5';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { addBadges } from '../../Redux/ordersSlice';
+import useCheckAvailabilityForCustomization from '../../Utils/useCheckAvailabilityForCustomization';
+import { Select, Dropdown, Menu, Button } from 'antd';
+import { IoCloseCircle } from 'react-icons/io5';
+
 const { Option } = Select;
 
-const ListBadges = ({ badges, selectedBadges, productId,customerId, selectedOrder, onBadgeSelect }) => {
-  const [selectedSize, setSelectedSize] = useState(null); // State for selected size
+const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadgeSelect }) => {
+  const [selectedSize, setSelectedSize] = useState(null);
   const dispatch = useDispatch();
+
+  // Get availability data
+  const availabilityData = useCheckAvailabilityForCustomization(selectedOrder._id, customerId, selectedSize);
 
   const handleBadgeClick = (badge) => {
     onBadgeSelect(badge);
@@ -20,109 +23,106 @@ const ListBadges = ({ badges, selectedBadges, productId,customerId, selectedOrde
   };
 
   const handleSubmit = () => {
-    dispatch(addBadges({
-      badges: [{ size: selectedSize, badges: selectedBadges.map(item => item._id) }],
-      productId: selectedOrder._id, // Ensure productId is correctly passed
-      customerId: customerId // Pass customerId as well if needed
-    }));
+    dispatch(
+      addBadges({
+        badges: [{ size: selectedSize, badges: selectedBadges.map((item) => item._id) }],
+        productId: selectedOrder._id,
+        customerId: customerId,
+      })
+    );
   };
 
+  // Calculate the number of selected badges for a specific size
+  const calculateSelectedBadgeCountForSize = (size) => {
+    return selectedOrder.badges?.filter((badge) => badge.size === size).length;
+  };
 
+  // Check if a badge is available for the selected size
+  const isBadgeAvailableForSize = (badge) => {
+    const selectedCount = selectedBadges?.filter((b) => b._id === badge._id && b.size === selectedSize).length;
+    const availableStock = availabilityData?.customizationsForSize?.find((customization) => customization.badgeId === badge._id)?.stock || 0;
+    return availableStock - selectedCount > 0;
+  };
+
+  // Create a menu for the badge selection
   const menu = (
     <Menu>
-      <div className='max-h-[200px] overflow-y-auto'>
-        {badges.map(badge => (
-          <Menu.Item
-            key={badge._id}
-            className={`cursor-pointer ${selectedBadges.some(b => b._id === badge._id) ? 'bg-blue-500 border-red-500' : 'bg-red-500'}`}
-            onClick={() => handleBadgeClick(badge)}
-          >
-            <div className={`cursor-pointer flex ${selectedBadges.some(b => b._id === badge._id) ? 'bg-blue-500 border-red-500' : 'bg-red-500'} flex items-center w-[300px] border rounded-lg p-2`}>
-              <img
-                alt={badge.name}
-                src={badge.image?.url || 'https://via.placeholder.com/150'}
-                className="object-cover h-[48px] w-[48px] mr-2"
-              />
-              <div>
-                <div>{badge.name}</div>
-                <div>Price: ${badge.price}</div>
+      <div className="max-h-[200px] overflow-y-auto">
+        {badges.map((badge) => {
+          const isBadgeDisabled = !isBadgeAvailableForSize(badge);
+
+          return (
+            <Menu.Item
+              key={badge._id}
+              className={`cursor-pointer ${selectedBadges?.some((b) => b._id === badge._id) ? 'bg-blue-500' : ''}`}
+              onClick={() =>  handleBadgeClick(badge)}
+            >
+              <div className={`cursor-pointer flex ${isBadgeDisabled ? 'bg-gray-300' : 'bg-red-500'} items-center w-[300px] border rounded-lg p-2`}>
+                <img
+                  alt={badge.name}
+                  src={badge.image?.url || 'https://via.placeholder.com/150'}
+                  className="object-cover h-[48px] w-[48px] mr-2"
+                />
+                <div>
+                  <div>{badge.name}</div>
+                  <div>Price: ${badge.price}</div>
+                </div>
+                <IoCloseCircle className="ms-auto" />
               </div>
-              <IoCloseCircle className='ms-auto' />
-            </div>
-          </Menu.Item>
-        ))}
+            </Menu.Item>
+          );
+        })}
       </div>
     </Menu>
   );
 
   return (
     <div className="rounded-lg p-6 ms-auto">
+      {/* Size selection */}
       <Select
         placeholder="Select size"
         onChange={handleSizeSelect}
         value={selectedSize}
-        style={{ width: '100%' }} // Ensure Select takes full width
+        style={{ width: '100%' }}
       >
         {selectedOrder && selectedOrder.orderSizes ? (
-          Object.keys(selectedOrder.orderSizes).map((size) => (
-            <Option key={size} value={size}>
-              {size}
-            </Option>
-          ))
+          Object.keys(selectedOrder.orderSizes).map((size) => {
+            const availableStock = selectedOrder.orderSizes[size];
+            const selectedBadgeCount = calculateSelectedBadgeCountForSize(size);
+            console.log(selectedBadgeCount, availableStock);
+            
+            // Disable the size if the available stock minus the selected badge count for this size is less than or equal to zero
+            const isSizeDisabled = availableStock - selectedBadgeCount <= 0;
+
+            return (
+              <Option key={size} value={size} disabled={isSizeDisabled}>
+                {size} {isSizeDisabled ? '(Unavailable)' : ''}
+              </Option>
+            );
+          })
         ) : (
           <Option disabled>No sizes available</Option>
         )}
       </Select>
-      <Dropdown overlay={menu} trigger={['click']} className='w-full'>
-        <Button>
-          {selectedBadges.length ? `Selected (${selectedBadges.length})` : 'Select Badges'}
-        </Button>
-      </Dropdown>
+
+      {/* Badge selection dropdown */}
+      {availabilityData?.isSizeAvailable && (
+        <Dropdown overlay={menu} trigger={['click']} className="w-full">
+          <Button>{selectedBadges.length ? `Selected (${selectedBadges.length})` : 'Select Badges'}</Button>
+        </Dropdown>
+      )}
+
+      {/* Submit button is disabled if no size is selected or selected badges length is zero */}
       <Button
         type="primary"
         className="mt-4 w-full"
-        onClick={handleSubmit} // Ensure that the onClick event is attached to handle form submission
-        disabled={selectedBadges.length === 0 || selectedSize === null} // Updated condition
+        onClick={handleSubmit}
+        disabled={selectedBadges.length === 0 || selectedSize === null}
       >
         Submit Badge Selection
       </Button>
     </div>
   );
-};
-
-ListBadges.propTypes = {
-  badges: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      image: PropTypes.shape({
-        url: PropTypes.string,
-      }),
-      price: PropTypes.number.isRequired,
-    })
-  ).isRequired,
-  selectedBadges: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      image: PropTypes.shape({
-        url: PropTypes.string,
-      }),
-      price: PropTypes.number.isRequired,
-    })
-  ).isRequired,
-  selectedOrder: PropTypes.shape({
-    _id: PropTypes.string.isRequired,
-    orderSizes: PropTypes.object,
-    customerId: PropTypes.string.isRequired, // Add customerId if necessary
-  }),
-  onBadgeSelect: PropTypes.func.isRequired,
-};
-
-ListBadges.defaultProps = {
-  badges: [],
-  selectedBadges: [],
-  selectedOrder: {},
 };
 
 export default ListBadges;
