@@ -18,8 +18,6 @@ const ordersSlice = createSlice({
     },
     addOrder: (state, action) => {
       console.log(action.payload);
-      
-
 
       const customers = [...state.customer];
 
@@ -36,10 +34,8 @@ const ordersSlice = createSlice({
         const customer = result[0];
 
         if (customer.orders) {
-          
           customer.orders.push(action.payload.product);
         } else {
-         
           customer.orders = [action.payload.product];
         }
 
@@ -151,130 +147,170 @@ const ordersSlice = createSlice({
 
     deleteCustomer: (state, action) => {
       console.log(action.payload);
-      
-    
+
       // Find the customer to be deleted
-      const customerToDelete = state.customer.find((item) => item._id === action.payload);
-    console.log(JSON.stringify(customerToDelete));
-    
+      const customerToDelete = state.customer.find(
+        (item) => item._id === action.payload
+      );
+      console.log(JSON.stringify(customerToDelete));
+
       if (customerToDelete && customerToDelete.orders) {
         // Calculate the sum and count of orders
-        const sum = customerToDelete.orders.reduce((acc, order) => acc + order.total, 0);
+        const sum = customerToDelete.orders.reduce(
+          (acc, order) => acc + order.total,
+          0
+        );
         const count = customerToDelete.orders.length;
-    
+
         // Update the totals
         state.totalPrice = state.totalPrice - sum;
-        
+
         // Remove the customer from the state
         state.totalProducts = state.totalProducts - count;
-        state.customer = state.customer.filter((item) => item._id !== action.payload);
-
+        state.customer = state.customer.filter(
+          (item) => item._id !== action.payload
+        );
       } else {
-        state.customer = state.customer.filter((item) => item._id !== action.payload);
+        state.customer = state.customer.filter(
+          (item) => item._id !== action.payload
+        );
         // Handle case where the customer is not found or has no orders
-        console.error(`Customer with ID ${action.payload} not found or has no orders.`);
+        console.error(
+          `Customer with ID ${action.payload} not found or has no orders.`
+        );
       }
-    
+
       // Update the total number of customers
       state.totalCustomers = state.totalCustomers - 1;
     },
-    
-    submitCustomers :(state) => {
-      state.customer = []
-      state.totalCustomers = 0
-      state.totalProducts = 0
-      state.totalPrice = 0
+
+    submitCustomers: (state) => {
+      state.customer = [];
+      state.totalCustomers = 0;
+      state.totalProducts = 0;
+      state.totalPrice = 0;
     },
     addCustomization: (state, action) => {
-      // Extract customerId, productId (order), and customization from the payload
       const { customerId, productId, customization } = action.payload;
-    
+
       // Find the index of the customer with the matching customerId
       const customerIndex = state.customer.findIndex(
         (customer) => customer._id === customerId
       );
-    
+
       if (customerIndex === -1) {
         // Customer not found
         console.warn("No customer found with the provided customerId");
         return state; // Return the unchanged state
       }
-    
+
       // Extract the found customer
       const customer = state.customer[customerIndex];
-    
+
       // Find the index of the order within the customer's orders
       const orderIndex = customer.orders.findIndex(
         (order) => order._id === productId
       );
-    
+
       if (orderIndex === -1) {
         // Order not found
         console.warn("No order found with the provided productId");
         return state; // Return the unchanged state
       }
-    
+
       // Add the customization to the order's customizations array
       if (!customer.orders[orderIndex].customizations) {
         customer.orders[orderIndex].customizations = []; // Initialize if empty
       }
       customer.orders[orderIndex].customizations.push(customization);
-    
+
       // Update the customer in the state
       state.customer[customerIndex] = customer;
-    
+
       console.log(
         `Added customization to order ${productId} for customer ${customerId}:`,
         JSON.stringify(state.customer, null, 2)
       );
     },
- // ordersSlice.js
- addBadges: (state, action) => {
-  const { customerId, productId, badges } = action.payload;
+    addBadges: (state, action) => {
+      const { customerId, productId, badges } = action.payload;
 
-  const customerIndex = state.customer.findIndex(
-    (customer) => customer._id === customerId
-  );
+      const customerIndex = state.customer.findIndex(
+        (customer) => customer._id === customerId
+      );
 
-  if (customerIndex === -1) {
-    console.warn("No customer found with the provided customerId");
-    return state;
-  }
+      if (customerIndex === -1) {
+        console.warn("No customer found with the provided customerId");
+        return state;
+      }
 
-  const customer = state.customer[customerIndex];
-  const orderIndex = customer.orders.findIndex(
-    (order) => order._id === productId
-  );
+      const customer = state.customer[customerIndex];
+      const orderIndex = customer.orders.findIndex(
+        (order) => order._id === productId
+      );
 
-  if (orderIndex === -1) {
-    console.warn("No order found with the provided productId");
-    return state;
-  }
+      if (orderIndex === -1) {
+        console.warn("No order found with the provided productId");
+        return state;
+      }
 
-  const order = customer.orders[orderIndex];
+      const order = customer.orders[orderIndex];
 
-  // Initialize badges if undefined
-  if (!order.badges) {
-    order.badges = [];
-  }
+      // Initialize badges if undefined
+      if (!order.badges) {
+        order.badges = [];
+      }
 
-  // Add new badges for the order
-  badges.forEach(({ size, badges: newBadges }) => {
-    // Directly push the new set of badges for the size
-    order.badges.push({ size, badges: [...newBadges] });
-  });
+      // Add new badges for the order
+      badges.forEach(({ size, badges: newBadges }) => {
+        // Directly push the new set of badges for the size
+        order.badges.push({ size, badges: [...newBadges] });
+      });
 
-  state.customer[customerIndex] = customer;
+      state.customer[customerIndex] = customer;
 
-  console.log(
-    `Added badges to order ${productId} for customer ${customerId}:`,
-    JSON.stringify(badges, null, 2)
-  );
-},
+      console.log(
+        `Added badges to order ${productId} for customer ${customerId}:`,
+        JSON.stringify(badges, null, 2)
+      );
+    },
 
-    
+    deleteCustomization: (state, action) => {
+      const { customerId, productId, customizationId } = action.payload;
 
-    
+      // Find customer
+      const customerIndex = state.customer.findIndex(
+        (customer) => customer._id === customerId
+      );
+      if (customerIndex === -1) {
+        console.warn("No customer found with the provided customerId");
+        return state;
+      }
+
+      const customer = state.customer[customerIndex];
+
+      // Find order
+      const orderIndex = customer.orders.findIndex(
+        (order) => order._id === productId
+      );
+      if (orderIndex === -1) {
+        console.warn("No order found with the provided productId");
+        return state;
+      }
+
+      // Filter out the customization
+      customer.orders[orderIndex].customizations = customer.orders[
+        orderIndex
+      ].customizations.filter((custom) => custom.id !== customizationId);
+
+      // Update state
+      state.customer[customerIndex] = customer;
+
+      console.log(
+        `Deleted customization ${customizationId} from order ${productId} for customer ${customerId}:`,
+        JSON.stringify(state.customer, null, 2)
+      );
+    },
   },
 });
 
@@ -288,5 +324,6 @@ export const {
   addCustomization,
   submitCustomers,
   addBadges,
+  deleteCustomization,
 } = ordersSlice.actions;
 export default ordersSlice.reducer;
