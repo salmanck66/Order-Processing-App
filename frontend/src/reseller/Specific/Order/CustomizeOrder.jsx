@@ -1,33 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, Spin, message, Select } from 'antd';
-import { fetchBadge } from '../../Api/getApi';
-import ListBadges from './ListBadges';
-import { useDispatch } from 'react-redux';
-import { addCustomization } from '../../Redux/ordersSlice';
+import React, { useEffect, useState } from "react";
+import { Form, Input, Button, Spin, message, Select } from "antd";
+import { fetchBadge } from "../../Api/getApi";
+import ListBadges from "./ListBadges";
+import { useDispatch } from "react-redux";
+import { addCustomization } from "../../Redux/ordersSlice";
+import { v4 as uuidv4 } from 'uuid';
 
-const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
-  const [badges, setBadges] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedSize, setSelectedSize] = useState('');
+const CustomizeOrder = ({
+  loading,
+  selectedOrder,
+  customerId,
+  badges,
+  setBadges,
+  handleModalCancel,
+}) => {
+  const [selectedSize, setSelectedSize] = useState("");
   const [selectedBadges, setSelectedBadges] = useState([]);
   const [form] = Form.useForm(); // Initialize form instance
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    const loadBadges = async () => {
-      try {
-        const response = await fetchBadge();
-        setBadges(response.badge);
-      } catch (error) {
-        console.error('Error fetching badges:', error);
-        message.error('Failed to load badges');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadBadges();
-  }, []);
 
   const handleBadgeSelect = (badge) => {
     setSelectedBadges((prevSelected) => {
@@ -38,7 +28,7 @@ const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
       } else if (prevSelected.length < 3) {
         return [...prevSelected, badge];
       } else {
-        message.warning('You can only select up to 3 badges!');
+        message.warning("You can only select up to 3 badges!");
         return prevSelected;
       }
     });
@@ -65,7 +55,7 @@ const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
 
   const onFinish = async (customization) => {
     if (!selectedSize) {
-      message.error('Please select a size!');
+      message.error("Please select a size!");
       return;
     }
     try {
@@ -73,16 +63,20 @@ const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
         addCustomization({
           customerId: customerId,
           productId: selectedOrder._id,
-          customization: { ...customization, size: selectedSize, badges: selectedBadges },
+          customization: {
+            ...customization,
+            id: uuidv4(),
+            size: selectedSize,
+          },
         })
       );
-      message.success('Customization added successfully!');
+      message.success("Customization added successfully!");
       form.resetFields(); // Clear the form data
-      setSelectedSize(''); // Clear selected size
+      setSelectedSize(""); // Clear selected size
       setSelectedBadges([]); // Clear selected badges
       handleModalCancel(); // Close the modal after successful submission
     } catch {
-      message.error('Failed to add customization');
+      message.error("Failed to add customization");
     }
   };
 
@@ -105,7 +99,9 @@ const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
                     name="name"
                     label="Your Name"
                     className="w-full md:w-1/2"
-                    rules={[{ required: true, message: 'Please input your name!' }]}
+                    rules={[
+                      { required: true, message: "Please input your name!" },
+                    ]}
                   >
                     <Input placeholder="Enter your name" />
                   </Form.Item>
@@ -114,7 +110,13 @@ const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
                     name="number"
                     label="Phone Number"
                     className="w-full md:w-1/2"
-                    rules={[{ required: true, message: 'Please input your number!' }, { pattern: /^[0-9]+$/, message: 'Number must be digits!' }]}
+                    rules={[
+                      { required: true, message: "Please input your number!" },
+                      {
+                        pattern: /^[0-9]+$/,
+                        message: "Number must be digits!",
+                      },
+                    ]}
                   >
                     <Input placeholder="Enter your number" />
                   </Form.Item>
@@ -125,7 +127,9 @@ const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
                     name="size"
                     label="Size"
                     className="w-full md:w-1/2"
-                    rules={[{ required: true, message: 'Please select a size!' }]}
+                    rules={[
+                      { required: true, message: "Please select a size!" },
+                    ]}
                   >
                     <Select
                       placeholder="Select size"
@@ -139,7 +143,7 @@ const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
                             value={size}
                             disabled={isSizeDisabled(size)}
                           >
-                            {size} {isSizeDisabled(size) && '(Unavailable)'}
+                            {size} {isSizeDisabled(size) && "(Unavailable)"}
                           </Select.Option>
                         ))}
                     </Select>
@@ -149,15 +153,28 @@ const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
                     name="productType"
                     label="Product Type"
                     className="w-full md:w-1/2"
-                    rules={[{ required: true, message: 'Please select a product type!' }]}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please select a product type!",
+                      },
+                    ]}
                   >
-                    <Select placeholder="Select product type">
-                      <Select.Option value="Vinyl">Vinyl</Select.Option>
-                      <Select.Option value="DTF">DTF</Select.Option>
-                      <Select.Option value="ORIGINAL(RETROS)">
-                        ORIGINAL(RETROS)
-                      </Select.Option>
-                    </Select>
+                   <Select placeholder="Select product type" style={{ width: 200 }}>
+  <Select.Option value="Vinyl">
+    <span style={{ float: 'left' }}>Vinyl</span>
+    <span style={{ float: 'right' }}>₹150</span>
+  </Select.Option>
+  <Select.Option value="DTF">
+    <span style={{ float: 'left' }}>DTF</span>
+    <span style={{ float: 'right' }}>₹200</span>
+  </Select.Option>
+  <Select.Option value="ORIGINAL(RETROS)">
+    <span style={{ float: 'left' }}>ORIGINAL(RETROS)</span>
+    <span style={{ float: 'right' }}>₹300</span>
+  </Select.Option>
+</Select>
+
                   </Form.Item>
                 </div>
 
@@ -178,7 +195,9 @@ const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
 
               {selectedBadges.length > 0 && (
                 <div className="mt-1 w-full">
-                  <h4 className="text-lg font-semibold mb-1">Selected Badges:</h4>
+                  <h4 className="text-lg font-semibold mb-1">
+                    Selected Badges:
+                  </h4>
                   <div className="flex flex-wrap gap-6">
                     {selectedBadges.map((badge) => (
                       <div
@@ -187,12 +206,17 @@ const CustomizeOrder = ({ selectedOrder, customerId, handleModalCancel }) => {
                       >
                         <img
                           alt={badge.name}
-                          src={badge.image?.url || 'https://via.placeholder.com/150'}
+                          src={
+                            badge.image?.url ||
+                            "https://via.placeholder.com/150"
+                          }
                           className="object-cover h-12 w-12 mr-4"
                         />
                         <div>
                           <div className="font-semibold">{badge.name}</div>
-                          <div className="text-gray-600">Price: ${badge.price}</div>
+                          <div className="text-gray-600">
+                            Price: ${badge.price}
+                          </div>
                         </div>
                         <Button
                           type="danger"
