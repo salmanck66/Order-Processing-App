@@ -81,8 +81,6 @@ export const sendOrder = async (req, res) => {};
 export const ProductPageView = async (req, res) => {
   try {
     const searchQuery = req.query.q;
-    console.log("Search Query:", searchQuery);
-
     // Fetch data from the database, filtering products that contain the search query in their name
     const data = await Product.find({
       name: { $regex: searchQuery, $options: "i" },stock:true // 'i' makes the search case-insensitive
@@ -140,7 +138,6 @@ export const changePassword = async (req, res) => {
 // Function to create and save an order
 
 const processOrderSizes = (orderSizes) => {
-  console.log("Processing order sizes:", orderSizes);
   return Object.entries(orderSizes).map(([size, quantity]) => ({
     size: size,
     quantity: quantity,
@@ -170,19 +167,16 @@ const parseOrderData = (flatData) => {
 };
 export const submitorder = async (req, res) => {
   try {
-    console.log("getting")
     if (!req.files && req.body) {
       return res.status(404).json({ message: "Cannot submit without body" });
     }
-    console.log()
+    console.log(req.body)
 
     // Parse the body using qs (or directly if it's already in the correct format)
     const decodedBody = qs.parse(req.body);
-    console.log('Decoded Body:', req.body); // Debugging
 
     // Check if the files exist
     const pdfFiles = Object.values(req.files) || []; // Fallback to empty array if files are undefined
-    console.log('PDF Files:', pdfFiles); // Debugging
 
     // Define the order placement time window
     const currentTime = moment();
@@ -229,25 +223,25 @@ export const submitorder = async (req, res) => {
     // Prepare the new customers data
     const newCustomers = Object.keys(decodedBody).map((key, index) => {
       const customer = decodedBody[key];
-      console.log('Customer Data:', customer); // Debugging
-
       return {
-        customerName: customer.customerName || 'Unknown', // Default value if missing
+        customerName: customer.customerName || 'Unknown',
         orders: customer.orders.map((order) => ({
           productId: order._id,
           orderSizes: Object.keys(order.orderSizes).map(size => ({
             size,
-            quantity: order.orderSizes[size], // Quantity for each size
+            quantity: order.orderSizes[size],
           })),
+          customizations: order.customizations || [], // Ensure customizations are included
+          badge: order.badge ? order.badge[0] : null, // If you have badges to include
         })),
-        label: pdfUrls[index] || 'No PDF URL', // Default value if missing
+        label: pdfUrls[index] || 'No PDF URL',
       };
     });
+    
 
 
     // Save or update the order
     if (existingOrder) {
-      console.log('Existing Order:', existingOrder); // Debugging
       // Update the existing order
       existingOrder.customers.push(...newCustomers); // Ensure new customers are pushed correctly
       await existingOrder.save();
