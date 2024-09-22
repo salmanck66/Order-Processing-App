@@ -176,6 +176,7 @@ const CustomerDetails = () => {
     columns={columns}
     rowKey="_id"
     pagination={false}
+    expandIconColumnIndex={-1}
     scroll={{ x: '100%' }}
     expandable={{
         expandedRowRender: (order) => (
