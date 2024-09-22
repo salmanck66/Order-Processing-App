@@ -9,7 +9,7 @@ const useCheckAvailabilityForCustomization = (productId, customerId, selectedSiz
 
   // If the customer exists, find the specific order by productId
   const order = customer?.orders?.find((order) => order._id === productId);
-
+  
   if (order) {
     // Check if the size is available in orderSizes
 
@@ -23,12 +23,7 @@ const useCheckAvailabilityForCustomization = (productId, customerId, selectedSiz
     // Size is available if there are less customizations than size count
     const isSizeAvailable = customizationCount < availableSizeCount;
 
-    // Log information for debugging
-    console.log(`Product ID: ${productId}`);
-    console.log(`Selected Size: ${selectedSize}`);
-    // console.log(`Is Size Available: ${isSizeAvailable}`);
-    console.log(`Badge for Size: `, badgeForSize);
-    console.log(`Customizations for Size: `, customizationsForSize);
+    
 
     return {
       isSizeAvailable,
@@ -37,7 +32,7 @@ const useCheckAvailabilityForCustomization = (productId, customerId, selectedSiz
     };
   }
 
-  return null;
+  return ;
 };
 
 export default useCheckAvailabilityForCustomization;

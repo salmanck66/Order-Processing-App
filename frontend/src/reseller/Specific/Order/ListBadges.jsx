@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { addBadges } from '../../Redux/ordersSlice';
 import useCheckAvailabilityForCustomization from '../../Utils/useCheckAvailabilityForCustomization';
-import { Select, Dropdown, Menu, Button } from 'antd';
+import { Select, Dropdown, Menu, Button, Divider } from 'antd';
 import { IoCloseCircle } from 'react-icons/io5';
 
 const { Option } = Select;
 
-const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadgeSelect, handleModalCancel }) => {
+const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, setSelectedBadges, onBadgeSelect, handleModalCancel }) => {
   const [selectedSize, setSelectedSize] = useState(null);
   const dispatch = useDispatch();
   
@@ -29,22 +29,21 @@ const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadge
     if (!selectedSize) {
       return; // Exit if no size is selected
     }
+    const totalPrice = selectedBadges.reduce((sum, badge) => sum + badge.price, 0);
+    console.log(`Total price of selected badges: $${totalPrice}`);
 
+    // Dispatch action to add badges
     dispatch(
       addBadges({
         badges: [{ size: selectedSize, badges: selectedBadges.map((item) => item._id) }],
         productId: selectedOrder._id,
-        customerId: customerId,
+        totalPrice,
+        customerId: customerId, 
       })
-    ).then(() => {
-      // Clear form data and close modal
-      setSelectedSize(null);
-      onBadgeSelect([]); // Clear selected badges
-      handleModalCancel(); // Close modal after dispatch is successful
-    }).catch((error) => {
-      console.error('Error adding badges:', error);
-      // You might want to show an error message here
-    });
+    );
+    setSelectedSize(null); // Reset the size
+    setSelectedBadges([]); // Clear selected badges
+    handleModalCancel(); // Close modal
   };
 
   // Calculate the number of selected badges for a specific size
@@ -65,14 +64,15 @@ const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadge
       <div className="max-h-[200px] overflow-y-auto">
         {badges.map((badge) => {
           const isBadgeDisabled = !isBadgeAvailableForSize(badge);
+          const isSelected = selectedBadges?.some((b) => b._id === badge._id);
 
           return (
             <Menu.Item
               key={badge._id}
-              className={`cursor-pointer ${selectedBadges?.some((b) => b._id === badge._id) ? 'bg-blue-500' : ''}`}
+              className={`cursor-pointer ${isSelected ? 'bg-green-500' : ''}`} // Change background if selected
               onClick={() => handleBadgeClick(badge)}
             >
-              <div className={`cursor-pointer flex ${isBadgeDisabled ? 'bg-gray-300' : 'bg-red-500'} items-center w-[300px] border rounded-lg p-2`}>
+              <div className={`cursor-pointer flex ${isBadgeDisabled ? 'bg-gray-300' : 'bg-blue-100'} items-center w-[300px] border rounded-lg p-2`}>
                 <img
                   alt={badge.name}
                   src={badge.image?.url || 'https://via.placeholder.com/150'}
@@ -82,7 +82,7 @@ const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadge
                   <div>{badge.name}</div>
                   <div>Price: ${badge.price}</div>
                 </div>
-                <IoCloseCircle className="ms-auto" />
+                {isSelected && <IoCloseCircle className="ms-auto text-red-600" />}
               </div>
             </Menu.Item>
           );
@@ -91,24 +91,23 @@ const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadge
     </Menu>
   );
 
-  useEffect(() => {
-    // Re-fetch availability data when selectedOrder or selectedSize changes
-  }, [selectedOrder, selectedSize]);
-
   return (
-    <div className="rounded-lg p-6 ms-auto">
+    <div className="rounded-lg w-full">
+      <Divider />
+
       {/* Size selection */}
       <Select
         placeholder="Select size"
         onChange={handleSizeSelect}
         value={selectedSize}
+        className='my-3'
         style={{ width: '100%' }}
       >
         {selectedOrder && selectedOrder.orderSizes ? (
           Object.keys(selectedOrder.orderSizes).map((size) => {
             const availableStock = selectedOrder.orderSizes[size];
             const selectedBadgeCount = calculateSelectedBadgeCountForSize(size);
-            
+
             // Disable the size if the available stock minus the selected badge count for this size is less than or equal to zero
             const isSizeDisabled = availableStock - selectedBadgeCount <= 0;
 
@@ -124,16 +123,14 @@ const ListBadges = ({ badges, selectedBadges, customerId, selectedOrder, onBadge
       </Select>
 
       {/* Badge selection dropdown */}
-      {availabilityData?.isSizeAvailable && (
-        <Dropdown overlay={menu} trigger={['click']} className="w-full">
-          <Button>{selectedBadges.length ? `Selected (${selectedBadges.length})` : 'Select Badges'}</Button>
-        </Dropdown>
-      )}
+      <Dropdown overlay={menu} trigger={['click']} className="w-full">
+        <Button>{selectedBadges.length ? `Selected (${selectedBadges.length})` : 'Select Badges'}</Button>
+      </Dropdown>
 
       {/* Submit button is disabled if no size is selected or selected badges length is zero */}
       <Button
         type="primary"
-        className="mt-4 w-full"
+        className="mt-4  w-full"
         onClick={handleSubmit}
         disabled={selectedBadges.length === 0 || selectedSize === null}
       >

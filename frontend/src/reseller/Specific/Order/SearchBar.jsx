@@ -90,9 +90,9 @@ const SearchBar = ({ customerId }) => {
   }, [searchTerm]);
 
   return (
-    <div className="w-full flex gap-2 justify-end h-full items-center">
+    <div className="w-fit flex gap-2 justify-end h-full items-center">
       <AutoComplete
-        style={{ width: 400 }}
+        style={{ width: 300 }}
         dropdownRender={(menu) =>
           isLoading ? (
             <div className="p-4 flex justify-center items-center">

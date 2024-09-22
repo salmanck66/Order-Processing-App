@@ -4,7 +4,7 @@ import { fetchBadge } from "../../Api/getApi";
 import ListBadges from "./ListBadges";
 import { useDispatch } from "react-redux";
 import { addCustomization } from "../../Redux/ordersSlice";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 const CustomizeOrder = ({
   loading,
@@ -97,7 +97,7 @@ const CustomizeOrder = ({
                 <div className="flex flex-col md:flex-row md:space-x-6 md:space-y-4 md:space-y-0">
                   <Form.Item
                     name="name"
-                    label="Your Name"
+                    label="Jersey Name"
                     className="w-full md:w-1/2"
                     rules={[
                       { required: true, message: "Please input your name!" },
@@ -108,7 +108,7 @@ const CustomizeOrder = ({
 
                   <Form.Item
                     name="number"
-                    label="Phone Number"
+                    label="Jersey Number"
                     className="w-full md:w-1/2"
                     rules={[
                       { required: true, message: "Please input your number!" },
@@ -160,21 +160,23 @@ const CustomizeOrder = ({
                       },
                     ]}
                   >
-                   <Select placeholder="Select product type" style={{ width: 200 }}>
-  <Select.Option value="Vinyl">
-    <span style={{ float: 'left' }}>Vinyl</span>
-    <span style={{ float: 'right' }}>₹150</span>
-  </Select.Option>
-  <Select.Option value="DTF">
-    <span style={{ float: 'left' }}>DTF</span>
-    <span style={{ float: 'right' }}>₹200</span>
-  </Select.Option>
-  <Select.Option value="ORIGINAL(RETROS)">
-    <span style={{ float: 'left' }}>ORIGINAL(RETROS)</span>
-    <span style={{ float: 'right' }}>₹300</span>
-  </Select.Option>
-</Select>
-
+                    <Select
+                      placeholder="Select product type"
+                      style={{ width: 200 }}
+                    >
+                      <Select.Option value="Vinyl">
+                        <span style={{ float: "left" }}>Vinyl</span>
+                        <span style={{ float: "right" }}>₹150</span>
+                      </Select.Option>
+                      <Select.Option value="DTF">
+                        <span style={{ float: "left" }}>DTF</span>
+                        <span style={{ float: "right" }}>₹200</span>
+                      </Select.Option>
+                      <Select.Option value="RETROS">
+                        <span style={{ float: "left" }}>ORIGINAL(RETROS)</span>
+                        <span style={{ float: "right" }}>₹300</span>
+                      </Select.Option>
+                    </Select>
                   </Form.Item>
                 </div>
 
@@ -189,8 +191,10 @@ const CustomizeOrder = ({
                 selectedOrder={selectedOrder}
                 badges={badges}
                 customerId={customerId}
+                handleModalCancel={handleModalCancel}
                 selectedBadges={selectedBadges}
                 onBadgeSelect={handleBadgeSelect}
+                setSelectedBadges={setSelectedBadges}
               />
 
               {selectedBadges.length > 0 && (
