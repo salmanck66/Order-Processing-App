@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import {savingLabel,checkUser,productsSearch,eachOrder,prevOrdersOut,fetchProfile, submitorder,loginResellers ,Dashboard,ProductPageView ,logout,changePassword, getOrdersByDate}  from '../controllers/usercontrollers.js';
+import {savingLabel,checkUser,productsSearch,eachOrder,prevOrdersOut,fetchProfile,loginResellers ,Dashboard,ProductPageView ,logout,changePassword, getOrdersByDate, submitOrder}  from '../controllers/usercontrollers.js';
 import { verifyToken } from "../middlewares/authMiddleware.js";
 import { badgeslist } from '../controllers/admincontrollers.js';
 const router = Router();
@@ -11,7 +11,7 @@ router.post("/logout", logout);
 router.get("/products", ProductPageView);
 router.get("", ProductPageView);
 router.get("/",Dashboard);
-router.post('/submitorder',  submitorder);
+router.post('/submitorder',  submitOrder);
 router.post('/editprofile',changePassword)
 router.get('/recent-orders',prevOrdersOut)
 router.get('/eachorder/:orderId',eachOrder)

@@ -165,105 +165,82 @@ const parseOrderData = (flatData) => {
     }))
   }));
 };
-export const submitorder = async (req, res) => {
+export const submitOrder = async (req, res) => {
   try {
-    if (!req.files && req.body) {
-      return res.status(404).json({ message: "Cannot submit without body" });
-    }
-    console.log(req.body)
-
-    // Parse the body using qs (or directly if it's already in the correct format)
-    const decodedBody = qs.parse(req.body);
-
-    // Check if the files exist
-    const pdfFiles = Object.values(req.files) || []; // Fallback to empty array if files are undefined
-
+    // Parse the body, assuming it's in JSON format
+    const customers = req.body;
+    console.log(JSON.stringify(customers, null, 2)); // Pretty print with indentation
+    
     // Define the order placement time window
     const currentTime = moment();
     const startTime = moment().set({ hour: 20, minute: 0, second: 0 }); // 8 PM today
-    const endTime = moment().add(1, "day").set({ hour: 11, minute: 59, second: 59 }); // 11:59 AM the next day
+    const endTime = moment().add(1, 'day').set({ hour: 11, minute: 59, second: 59 }); // 11:59 AM the next day
 
     // Check if the current time is outside the allowed window
     if (!currentTime.isBefore(startTime) || currentTime.isAfter(endTime)) {
-      return res.status(403).json({ message: "Orders can only be placed between 8 PM and 12 PM." });
+      return res.status(403).json({ message: 'Orders can only be placed between 8 PM and 12 PM.' });
     }
 
-    // Find the reseller by phone number
-    const { phone } = req.user; // Assuming phone number is stored in req.user
+    // Find the reseller by phone number from req.user (assuming authentication middleware)
+    const { phone } = req.user;
     const reseller = await Reseller.findOne({ phone });
     if (!reseller) {
-      return res.status(404).json({ message: "Reseller not found" });
+      return res.status(404).json({ message: 'Reseller not found' });
     }
 
-    // Define the order date
-    const orderDate = moment().startOf("day").toDate();
+    // Define the order date for checking if a previous order exists today
+    const orderDate = moment().startOf('day').toDate();
 
     // Check if there's an existing order for the reseller today
     let existingOrder = await Order.findOne({
-      "reseller.id": reseller._id,
+      'reseller.id': reseller._id,
       createdAt: { $gte: orderDate },
     });
 
-    // Process the PDFs, upload to Cloudinary, and get their URLs
-    const pdfUrls = await Promise.all(
-      pdfFiles.map(async (file) => {
-        if (!file || !file.data) {
-          return Promise.reject('No PDF'); // Handle files with missing buffer
-        }
-        try {
-          const url = await uploadToCloudinary(file.data);
-          return url;
-        } catch (error) {
-          console.error('Error uploading file:', error);
-          return "No PDF"; // Handle upload errors
-        }
-      })
-    );
-
-    // Prepare the new customers data
-    const newCustomers = Object.keys(decodedBody).map((key, index) => {
-      const customer = decodedBody[key];
-      return {
-        customerName: customer.customerName || 'Unknown',
-        orders: customer.orders.map((order) => ({
-          productId: order._id,
-          orderSizes: Object.keys(order.orderSizes).map(size => ({
-            size,
-            quantity: order.orderSizes[size],
-          })),
-          customizations: order.customizations || [], // Ensure customizations are included
-          badge: order.badge ? order.badge[0] : null, // If you have badges to include
+    // Prepare the new customers data from the request body
+    const newCustomers = customers.map((customer) => ({
+      customerName: customer.customerName || 'Unknown',
+      orders: customer.orders.map((order) => ({
+        productId: order._id, // Assuming you want to store the product ID
+        orderSizes: Object.keys(order.orderSizes).map(size => ({
+          size,
+          quantity: order.orderSizes[size],
+          sizestock: order.sizes[size] || true, // Include stock if available
         })),
-        label: pdfUrls[index] || 'No PDF URL',
-      };
-    });
-    
+        customizations: order.customizations || [], // Ensure customizations are included
+        badge: order.badge || null, // Badge is optional
+        status: order.status ?? false, // Default status
+      })),
+      label: customer.label || 'No PDF URL', // Use the provided label URL or fallback
+      status: customer.status ?? false, // Default status
+    }));
 
-
-    // Save or update the order
+    // Save or update the order in the database
     if (existingOrder) {
-      // Update the existing order
-      existingOrder.customers.push(...newCustomers); // Ensure new customers are pushed correctly
+      // Update the existing order with new customers
+      existingOrder.customers.push(...newCustomers);
       await existingOrder.save();
     } else {
-      // Create a new order
+      // Create a new order if no existing order found for today
       const newOrder = new Order({
         reseller: {
           id: reseller._id,
           name: reseller.name,
         },
         customers: newCustomers,
-        status: false,
+        status: false, // Default status
       });
       await newOrder.save();
     }
 
-    res.status(200).json({ message: "Order submitted successfully." });
+    // Return a success response
+    res.status(200).json({ message: 'Order submitted successfully.' });
   } catch (error) {
-    console.error("Error submitting order:", error);
-    res.status(500).json({ message: "An error occurred while submitting the order." });
+    console.error('Error submitting order:', error);
+    res.status(500).json({ message: 'An error occurred while submitting the order.' });
   }
 };
+
 
 
 export const prevOrdersOut = async (req, res) => {
@@ -435,19 +412,21 @@ export const badgeslist = async (req, res) => {
 
 export const savingLabel = async (req, res) => {
   try {
+    console.log(req.files);
+    
     // Check if files are uploaded
-    if (!req.files || !req.files.label) {
+    if (!req.files ) {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const file = req.files.label[0]; // Since multer stores the files in an array, take the first one
+    const file = req.files.file; // Since multer stores the files in an array, take the first one
 
-    // Upload the file to Cloudinary
-    const result = await uploadToCloudinary(file.buffer);
-
+    const result = await uploadToCloudinary(file.data);
+    console.log(result);
+    
     // Check if upload is successful
-    if (result && result.secure_url) {
-      res.status(201).json({ url: result.secure_url });
+    if (result ) {
+      res.status(201).json({ url: result });
     } else {
       res.status(404).json({ message: "File upload failed" });
     }
