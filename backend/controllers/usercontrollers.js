@@ -432,3 +432,27 @@ export const badgeslist = async (req, res) => {
     res.status(500).json({ message: "Error fetching products" });
   }
 };
+
+export const savingLabel = async (req, res) => {
+  try {
+    // Check if files are uploaded
+    if (!req.files || !req.files.label) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const file = req.files.label[0]; // Since multer stores the files in an array, take the first one
+
+    // Upload the file to Cloudinary
+    const result = await uploadToCloudinary(file.buffer);
+
+    // Check if upload is successful
+    if (result && result.secure_url) {
+      res.status(201).json({ url: result.secure_url });
+    } else {
+      res.status(404).json({ message: "File upload failed" });
+    }
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
