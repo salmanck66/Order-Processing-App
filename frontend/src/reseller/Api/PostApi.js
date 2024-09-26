@@ -28,9 +28,6 @@ export const SearchProducts = async (query) => {
 export const submitorder = async (data) => {
     try {
         const response = await userInstance.post('/submitorder', data, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
         });
         return response.data;
     } catch (error) {
@@ -67,4 +64,18 @@ export const fetchProducts = async (data) => {
 
 
 
-
+export const uploadFile = async (data) => {
+    try {
+        const response = await userInstance.post('/label-save', data, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        console.log(response);
+        return response;
+        
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        throw error;
+    }
+};
