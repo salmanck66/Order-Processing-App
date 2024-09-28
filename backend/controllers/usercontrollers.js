@@ -170,7 +170,7 @@ export const submitOrder = async (req, res) => {
     // Parse the body, assuming it's in JSON format
     const customers = req.body;
     console.log(JSON.stringify(customers, null, 2)); // Pretty print with indentation
-    
+
     // Define the order placement time window
     const currentTime = moment();
     const startTime = moment().set({ hour: 20, minute: 0, second: 0 }); // 8 PM today
@@ -208,7 +208,11 @@ export const submitOrder = async (req, res) => {
           sizestock: order.sizes[size] || true, // Include stock if available
         })),
         customizations: order.customizations || [], // Ensure customizations are included
-        badge: order.badge || null, // Badge is optional
+        badges: order.badges?.map(badge => ({
+          size: badge.size,
+         
+          badges: badge.badges,
+        })) || [], // Default to an empty array if no badges are provided
         status: order.status ?? false, // Default status
       })),
       label: customer.label || 'No PDF URL', // Use the provided label URL or fallback
@@ -240,6 +244,7 @@ export const submitOrder = async (req, res) => {
     res.status(500).json({ message: 'An error occurred while submitting the order.' });
   }
 };
+
 
 
 

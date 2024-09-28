@@ -11,6 +11,19 @@ const orderSizeSchema = new mongoose.Schema({
     default: true,
   },
 });
+const badgeSchema = new mongoose.Schema({
+  size: {
+    type: String,
+    required: true,
+  },
+  badges: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Badge',  // Reference to Badge schema
+      required: true,
+    }
+  ]
+});
 
 const customizationSchema = new mongoose.Schema({
   name: {
@@ -25,6 +38,10 @@ const customizationSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: ["Vinyl", "DTF","ORIGINAL(RETROS)"],  // Customization type, e.g., size or color
+  },
+  productType: {
+    type: String,
+    enum: ["Vinyl", "DTF", "ORIGINAL(RETROS)"],  // Customization type
   }
 });
 
@@ -61,10 +78,9 @@ const orderSchema = new mongoose.Schema({
             type: [customizationSchema],  // Including the customization schema here
             required: false,  // Customization can be optional based on product type
           },
-          badge: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Badge',  // Reference to Badge schema
-            required: false,  // Badge is optional
+          badges: {
+            type: [badgeSchema], 
+            required: false, 
           },
           status: {
             type: Boolean,

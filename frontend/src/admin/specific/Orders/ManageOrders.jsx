@@ -31,10 +31,8 @@ const ManageOrders = ({ orders, orderTotalLength, currentOrder, onNextReseller }
     }
   };
 
-  // Callback to handle customer order completion
   const handleCustomerOrderDone = (status) => {
-    // Update completion status based on customer order completion
-    // Assume status is a boolean indicating if all orders are done
+  
     setAllDone(status);
   };
 

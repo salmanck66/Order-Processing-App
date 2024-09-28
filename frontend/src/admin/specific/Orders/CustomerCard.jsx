@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Button, message, Checkbox, Tag, Spin } from 'antd';
+import { Table, Card, Button, message, Checkbox, Tag, Spin, Modal, Descriptions } from 'antd';
 import { IoPrintSharp } from 'react-icons/io5';
 import { GoFileSubmodule } from 'react-icons/go';
 import { ManageOutOffStock, statusChangeCustomer } from '../../Api/postApi';
@@ -18,6 +18,12 @@ const CustomerCard = ({ customer, orderId, onOrderDone }) => {
 
   const [loading, setLoading] = useState(false);
   const [orderDone, setOrderDone] = useState(customer.status);
+
+  // States for Modal
+  const [isCustomizationModalVisible, setIsCustomizationModalVisible] = useState(false);
+  const [isBadgeModalVisible, setIsBadgeModalVisible] = useState(false);
+  const [currentCustomization, setCurrentCustomization] = useState([]);
+  const [currentBadges, setCurrentBadges] = useState([]);
 
   useEffect(() => {
     setOrderDone(customer.status);
@@ -75,6 +81,38 @@ const CustomerCard = ({ customer, orderId, onOrderDone }) => {
       </div>
     ));
 
+  // Handlers for Customization Modal
+  const showCustomizationModal = (customizations) => {
+    setCurrentCustomization(customizations);
+    setIsCustomizationModalVisible(true);
+  };
+
+  const handleCustomizationModalOk = () => {
+    setIsCustomizationModalVisible(false);
+    setCurrentCustomization([]);
+  };
+
+  const handleCustomizationModalCancel = () => {
+    setIsCustomizationModalVisible(false);
+    setCurrentCustomization([]);
+  };
+
+  // Handlers for Badge Modal
+  const showBadgeModal = (badges) => {
+    setCurrentBadges(badges);
+    setIsBadgeModalVisible(true);
+  };
+
+  const handleBadgeModalOk = () => {
+    setIsBadgeModalVisible(false);
+    setCurrentBadges([]);
+  };
+
+  const handleBadgeModalCancel = () => {
+    setIsBadgeModalVisible(false);
+    setCurrentBadges([]);
+  };
+
   const columns = [
     {
       title: 'Product Name',
@@ -88,6 +126,34 @@ const CustomerCard = ({ customer, orderId, onOrderDone }) => {
       render: (sizes, record) =>
         renderSizesWithCheckboxes(sizes, record.productId._id),
     },
+    {
+      title: 'Customization',
+      dataIndex: 'customizations',
+      key: 'customizations',
+      render: (customizations) => (
+        customizations && customizations.length > 0 ? (
+          <Button type="link" onClick={() => showCustomizationModal(customizations)}>
+            View Customizations
+          </Button>
+        ) : (
+          <span>No Customizations</span>
+        )
+      ),
+    },
+    {
+      title: 'Badges',
+      dataIndex: 'badges',
+      key: 'badges',
+      render: (badges) => (
+        badges && badges.length > 0 ? (
+          <Button type="link" onClick={() => showBadgeModal(badges)}>
+            View Badges
+          </Button>
+        ) : (
+          <span>No Badges</span>
+        )
+      ),
+    },
   ];
 
   return (
@@ -99,7 +165,7 @@ const CustomerCard = ({ customer, orderId, onOrderDone }) => {
           {orderDone ? (
             <Tag color='success'>Completed</Tag>
           ) : (
-            <Tag color='cyan-inverse'>Pending</Tag>
+            <Tag color='warning'>Pending ..</Tag>
           )}
         </div>
       }
@@ -130,6 +196,60 @@ const CustomerCard = ({ customer, orderId, onOrderDone }) => {
           </Button>
         </div>
       </div>
+
+      {/* Customization Modal */}
+      <Modal
+        title="Customizations"
+        visible={isCustomizationModalVisible}
+        onOk={handleCustomizationModalOk}
+        onCancel={handleCustomizationModalCancel}
+        footer={[
+          <Button key="ok" type="primary" onClick={handleCustomizationModalOk}>
+            OK
+          </Button>,
+        ]}
+      >
+        {currentCustomization.length > 0 ? (
+          <Descriptions bordered column={1} className='max-h-[300px]  overflow-y-auto no-scrollbar' >
+            {currentCustomization.map((custom, index) => (
+              <Descriptions.Item key={index} label={`Customization ${index + 1}`}>
+                <p><strong>Name:</strong> {custom.name}</p>
+                <p><strong>Number:</strong> {custom.number}</p>
+                <p><strong>Size:</strong> {custom.size}</p>
+                <p><strong>Type:</strong> {custom.productType}</p>
+              </Descriptions.Item>
+            ))}
+          </Descriptions>
+        ) : (
+          <p>No customization details available.</p>
+        )}
+      </Modal>
+
+      {/* Badge Modal */}
+      <Modal
+        title="Badges"
+        visible={isBadgeModalVisible}
+        onOk={handleBadgeModalOk}
+        onCancel={handleBadgeModalCancel}
+        footer={[
+          <Button key="ok" type="primary" onClick={handleBadgeModalOk}>
+            OK
+          </Button>,
+        ]}
+      >
+        {currentBadges.length > 0 ? (
+          <Descriptions bordered column={1}>
+            {currentBadges.map((badge, index) => (
+              <Descriptions.Item key={index}  label={`Badge ${index + 1}`}>
+                <p><strong>Size:</strong> {badge.size}</p>
+                <p><strong>Badges:</strong> {badge.badges.join(', ')}</p>
+              </Descriptions.Item>
+            ))}
+          </Descriptions>
+        ) : (
+          <p>No badge details available.</p>
+        )}
+      </Modal>
     </Card>
   );
 };
