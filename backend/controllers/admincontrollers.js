@@ -10,7 +10,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import Order from "../models/order.js";
-import moment from 'moment';
+import moment from "moment";
 import Badge from "../models/badge.js";
 
 import {
@@ -19,7 +19,7 @@ import {
   verifyAccessToken,
   verifyRefreshToken,
 } from "../utils/tokenGen.js";
-import {  uploadToCloudinary } from "../config/cloudinaryConfig.js";
+import { uploadToCloudinary } from "../config/cloudinaryConfig.js";
 import { monthlyStatus } from "../helpers/monthleyStatus.js";
 import { status } from "../helpers/dashBoardStatus.js";
 
@@ -33,16 +33,16 @@ export const requestOTP = async (req, res) => {
 
   try {
     if (phoneNumber !== process.env.ADMIN_PHONE_NUMBER) {
-  console.log('as',process.env.ADMIN_PHONE_NUMBER);
+      console.log("as", process.env.ADMIN_PHONE_NUMBER);
 
       return res.status(401).json({ message: "Phone number not recognized." });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000);
     otpStorage[phoneNumber] = otp;
-    console.log(otp)
+    console.log(otp);
 
-    await sendOTP(otp);
+    await sendOTP(otp, process.env.ADMIN_PHONE_NUMBER);
 
     res.json({ message: "OTP sent to your phone number." });
   } catch (error) {
@@ -75,8 +75,6 @@ export const bulkUploadProducts = async (req, res) => {
   }
 };
 
-
-
 export const verifyOTPAndLogin = async (req, res) => {
   const { phoneNumber, otp } = req.body;
 
@@ -91,7 +89,10 @@ export const verifyOTPAndLogin = async (req, res) => {
 
     // Generate tokens
     const accessToken = generateAccessToken({ phoneNumber });
-    const refreshToken = generateRefreshToken({ phoneNumber, userType: 'admin' });
+    const refreshToken = generateRefreshToken({
+      phoneNumber,
+      userType: "admin",
+    });
 
     // Update or create admin document (assuming only one admin exists)
     await Admin.findOneAndUpdate(
@@ -104,14 +105,14 @@ export const verifyOTPAndLogin = async (req, res) => {
     res.cookie("access_token", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: 'Strict',
+      sameSite: "Strict",
       maxAge: 1000 * 60 * 15,
     });
 
     res.cookie("refresh_token", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: 'Strict',
+      sameSite: "Strict",
       maxAge: 1000 * 60 * 60 * 24 * 1000,
     });
 
@@ -122,8 +123,6 @@ export const verifyOTPAndLogin = async (req, res) => {
   }
 };
 
-
-
 // Logout
 export const logout = async (req, res) => {
   res.clearCookie("access_token");
@@ -133,16 +132,16 @@ export const logout = async (req, res) => {
 
 // Dashboard View
 export const Dashboard = async (req, res) => {
-  const graphData = await monthlyStatus()
-  const statusData = await status()
-    
-  res.status(200).json({graphData, statusData})
+  const graphData = await monthlyStatus();
+  const statusData = await status();
+
+  res.status(200).json({ graphData, statusData });
 };
 
 // Resellers View
 export const Resellers = async (req, res) => {
-  const resellers =await Reseller.find()
-  res.json({resellers})
+  const resellers = await Reseller.find();
+  res.json({ resellers });
 };
 
 // Products View
@@ -152,7 +151,7 @@ export const ProductPageView = async (req, res) => {
 
     // Fetch data from the database, filtering products that contain the search query in their name
     const data = await Product.find({
-      name: { $regex: searchQuery, $options: 'i' } // 'i' makes the search case-insensitive
+      name: { $regex: searchQuery, $options: "i" }, // 'i' makes the search case-insensitive
     });
 
     // Send the response with the filtered products
@@ -164,8 +163,7 @@ export const ProductPageView = async (req, res) => {
 };
 export const badgeslist = async (req, res) => {
   try {
-
-    const data = await Badge.find() || "No Badges"
+    const data = (await Badge.find()) || "No Badges";
 
     res.status(200).json({ badge: data });
   } catch (error) {
@@ -173,7 +171,6 @@ export const badgeslist = async (req, res) => {
     res.status(500).json({ message: "Error fetching products" });
   }
 };
-
 
 // Add User
 export const addUser = async (req, res) => {
@@ -187,7 +184,12 @@ export const addUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create and save the new reseller
-    const newReseller = new Reseller({ name, phone, email, password: hashedPassword });
+    const newReseller = new Reseller({
+      name,
+      phone,
+      email,
+      password: hashedPassword,
+    });
     await newReseller.save();
 
     // Send email using Nodemailer
@@ -211,18 +213,13 @@ export const addUser = async (req, res) => {
   }
 };
 
-
-
-
 // Add Product
 
 export const addproduct = async (req, res) => {
   try {
-    
-
     // Extract products data from req.body
     const products = [];
-    Object.keys(req.body).forEach(key => {
+    Object.keys(req.body).forEach((key) => {
       const match = key.match(/^products\[(\d+)]\[(\w+)]$/);
       if (match) {
         const [_, index, field] = match;
@@ -259,17 +256,19 @@ export const addproduct = async (req, res) => {
               const url = await uploadToCloudinary(fileBuffer);
               return {
                 url,
-                public_id: url.split('/').pop().split('.')[0], // Extract the public_id from the URL
+                public_id: url.split("/").pop().split(".")[0], // Extract the public_id from the URL
               };
             } catch (error) {
-              console.error('Error uploading file to Cloudinary:', error);
+              console.error("Error uploading file to Cloudinary:", error);
               return null; // Skip this image if there's an error
             }
           })
         );
 
         // Filter out any null image entries
-        const validImageDetails = imageDetails.filter(image => image !== null);
+        const validImageDetails = imageDetails.filter(
+          (image) => image !== null
+        );
 
         // Create and save the product
         const product = new Product({
@@ -285,15 +284,19 @@ export const addproduct = async (req, res) => {
       })
     );
 
-    res.status(201).json({ message: "Products added successfully.", products: createdProducts });
+    res
+      .status(201)
+      .json({
+        message: "Products added successfully.",
+        products: createdProducts,
+      });
   } catch (error) {
     console.error("Error adding products:", error);
-    res.status(500).json({ message: "Failed to add products.", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to add products.", error: error.message });
   }
 };
-
-
-
 
 // Edit Product
 // Edit Product
@@ -333,12 +336,10 @@ export const editproduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Product updated successfully",
-        product: updatedProduct,
-      });
+    res.status(200).json({
+      message: "Product updated successfully",
+      product: updatedProduct,
+    });
   } catch (error) {
     console.error("Error updating product:", error);
     res.status(500).json({ message: "Failed to update product." });
@@ -349,7 +350,7 @@ export const editproduct = async (req, res) => {
 // Delete Product
 export const deleteproduct = async (req, res) => {
   const { id } = req.params;
-console.log(id);
+  console.log(id);
 
   try {
     const deletedProduct = await Product.findByIdAndDelete(id);
@@ -365,13 +366,12 @@ console.log(id);
   }
 };
 
-
 export const deleteMultipleProducts = async (req, res) => {
-  const  ids = req.body.ids;
-console.log(ids);
+  const ids = req.body.ids;
+  console.log(ids);
 
   try {
-    const deletedResult = await Product.deleteMany({_id: {$in:ids}});
+    const deletedResult = await Product.deleteMany({ _id: { $in: ids } });
 
     if (deletedResult.deletedCount === 0) {
       return res.status(404).json({ message: "No products found to delete" });
@@ -493,20 +493,19 @@ export const updateacc = async (req, res) => {
   }
 };
 
-
 export const orderstoday = async (req, res) => {
   try {
     // Get today's start and end of the day
-    const startOfToday = moment().startOf('day').toDate();
-    const endOfToday = moment().endOf('day').toDate();
+    const startOfToday = moment().startOf("day").toDate();
+    const endOfToday = moment().endOf("day").toDate();
 
     // Find orders created today and not completed
     const ordersNotCompleted = await Order.findOne({
       createdAt: { $gte: startOfToday, $lte: endOfToday },
       status: false,
     })
-    .populate('customers.orders.productId', 'name') // Populate product name
-    .exec();
+      .populate("customers.orders.productId", "name") // Populate product name
+      .exec();
 
     // Get the total count of orders created today
     const totalOrdersToday = await Order.countDocuments({
@@ -523,67 +522,78 @@ export const orderstoday = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    
+
     return res.status(500).json({ error: error.message });
   }
 };
 
-export const resellerCompleteOrder = async(req, res) => {
-    const  { orderId} = req.body 
-    console.log(req.body);
-    
-    try {
-      const order = await Order.findById(orderId)
-      if(!order) {
-        return res.status(404).json({ message: "Order not found" });
-      }
-      const checkAllCustomerOrders = order.customers.every(cust => cust.status === true)
-      if (!checkAllCustomerOrders) {
-        return res.status(400).json({ message: "Not all customers have completed their orders"})
-      }
-      order.status = true
-      await order.save()
-     
-      
-      
-      return res.status(200).json({
-        status,
-        message: "Order completed successfully",
-      })
-    } catch(error) {
-      console.log(error)
-      return res.status(500).json({ error: error.message })
-    }
-}
+export const resellerCompleteOrder = async (req, res) => {
+  const { orderId } = req.body;
+  console.log(req.body);
 
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    const checkAllCustomerOrders = order.customers.every(
+      (cust) => cust.status === true
+    );
+    if (!checkAllCustomerOrders) {
+      return res
+        .status(400)
+        .json({ message: "Not all customers have completed their orders" });
+    }
+    order.status = true;
+    await order.save();
+
+    return res.status(200).json({
+      status,
+      message: "Order completed successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: error.message });
+  }
+};
 
 export const statusChange = async (req, res) => {
   try {
     const { orderId, id } = req.body;
     console.log(req.body);
-    
+
     // Find the order by ID
     const order = await Order.findById(orderId);
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return res.status(404).json({ message: "Order not found" });
     }
 
     // Find the customer index within the order's customers array
-    const customerIndex = order.customers.findIndex(cust => cust._id.toString() === id);
+    const customerIndex = order.customers.findIndex(
+      (cust) => cust._id.toString() === id
+    );
 
     if (customerIndex === -1) {
-      return res.status(404).json({ message: 'Customer not found in the order' });
+      return res
+        .status(404)
+        .json({ message: "Customer not found in the order" });
     }
 
     // Update the status of the specified customer
     order.customers[customerIndex].status = true;
-    const status = order.customers.every((cust) => cust.status === true)
-      console.log('status',status);
+    const status = order.customers.every((cust) => cust.status === true);
+    console.log("status", status);
     // Save the updated order document
     const updatedOrder = await order.save();
 
-    return res.status(200).json({ message: 'Customer status updated successfully',status, updatedOrder });
+    return res
+      .status(200)
+      .json({
+        message: "Customer status updated successfully",
+        status,
+        updatedOrder,
+      });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -597,7 +607,7 @@ export const stockoutMake = async (req, res) => {
     // Find the reseller by phone number
     const reseller = await Reseller.findOne({ phone });
     if (!reseller) {
-      return res.status(404).json({ message: 'Reseller not found' });
+      return res.status(404).json({ message: "Reseller not found" });
     }
 
     // Find today's date, ignoring time
@@ -606,7 +616,7 @@ export const stockoutMake = async (req, res) => {
 
     // Find the current date's order for this reseller
     const order = await Order.findOne({
-      'reseller.id': reseller._id,
+      "reseller.id": reseller._id,
       createdAt: {
         $gte: today,
         $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000), // until end of the day
@@ -614,20 +624,20 @@ export const stockoutMake = async (req, res) => {
     });
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return res.status(404).json({ message: "Order not found" });
     }
 
     // Find the customer and the product within the order
     const customer = order.customers.id(customerid);
     if (!customer) {
-      return res.status(404).json({ message: 'Customer not found' });
+      return res.status(404).json({ message: "Customer not found" });
     }
 
     const productOrder = customer.orders.find(
       (order) => order.productId.toString() === productid
     );
     if (!productOrder) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
 
     // Find the size within the product order
@@ -635,20 +645,20 @@ export const stockoutMake = async (req, res) => {
       (orderSize) => orderSize.size === size
     );
     if (!sizeToUpdate) {
-      return res.status(404).json({ message: 'Size not found' });
+      return res.status(404).json({ message: "Size not found" });
     }
 
     // Update the sizestock field if checked is true
     if (checked) {
       sizeToUpdate.sizestock = false;
       await order.save();
-      return res.status(200).json({ message: 'Size marked as out of stock' });
+      return res.status(200).json({ message: "Size marked as out of stock" });
     }
 
-    return res.status(400).json({ message: 'Invalid operation' });
+    return res.status(400).json({ message: "Invalid operation" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -659,14 +669,16 @@ export const getAllProducts = async (req, res) => {
     // If a search query is provided, filter products by name containing the search string
     let products;
     if (search) {
-      products = await Product.find({ name: { $regex: search, $options: 'i' } }); // Case-insensitive search
+      products = await Product.find({
+        name: { $regex: search, $options: "i" },
+      }); // Case-insensitive search
     } else {
       products = await Product.find();
     }
 
     return res.status(200).json({ products });
   } catch (error) {
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -695,7 +707,7 @@ export const ProductStockOut = async (req, res) => {
       };
       product.stock = false; // Full stockout
     } else if (fullstockout === true) {
-      if (sizes&&Object.keys(sizes).length>0) {
+      if (sizes && Object.keys(sizes).length > 0) {
         // Update sizes based on provided sizes
         const updatedSizes = { ...product.sizes };
         for (const size in sizes) {
@@ -719,13 +731,13 @@ export const ProductStockOut = async (req, res) => {
 
     await product.save();
 
-    return res.status(200).json({ message: "Product stock updated successfully.", product });
+    return res
+      .status(200)
+      .json({ message: "Product stock updated successfully.", product });
   } catch (error) {
     return res.status(500).json({ message: "An error occurred.", error });
   }
 };
-
-
 
 export const toggleOrderStatus = async (req, res) => {
   try {
@@ -733,31 +745,36 @@ export const toggleOrderStatus = async (req, res) => {
 
     // Validate parameters
     if (!orderId || !customerId || orderIndex === undefined) {
-      return res.status(400).json({ message: 'Missing required parameters' });
+      return res.status(400).json({ message: "Missing required parameters" });
     }
 
     // Convert orderIndex to integer
     const index = parseInt(orderIndex, 10);
     if (isNaN(index)) {
-      return res.status(400).json({ message: 'Invalid order index' });
+      return res.status(400).json({ message: "Invalid order index" });
     }
 
     // Find the order by ID
-    const order = await Order.findOne({ _id: orderId, 'customers._id': customerId });
+    const order = await Order.findOne({
+      _id: orderId,
+      "customers._id": customerId,
+    });
     if (!order) {
-      return res.status(404).json({ message: 'Order or customer not found' });
+      return res.status(404).json({ message: "Order or customer not found" });
     }
 
     // Locate the customer
     const customer = order.customers.id(customerId);
     if (!customer) {
-      return res.status(404).json({ message: 'Customer not found in the order' });
+      return res
+        .status(404)
+        .json({ message: "Customer not found in the order" });
     }
 
     // Locate the specific order within the customer's orders
     const orderItem = customer.orders[index];
     if (!orderItem) {
-      return res.status(404).json({ message: 'Order item not found' });
+      return res.status(404).json({ message: "Order item not found" });
     }
 
     // Toggle the status
@@ -766,28 +783,32 @@ export const toggleOrderStatus = async (req, res) => {
     // Save the updated order
     await order.save();
 
-    res.status(200).json({ message: 'Order status toggled successfully', order });
+    res
+      .status(200)
+      .json({ message: "Order status toggled successfully", order });
   } catch (error) {
-    console.error('Error toggling order status:', error);
-    res.status(500).json({ message: 'An error occurred while toggling the order status' });
+    console.error("Error toggling order status:", error);
+    res
+      .status(500)
+      .json({ message: "An error occurred while toggling the order status" });
   }
 };
 export const toggleBadgeStatus = async (req, res) => {
   try {
     const { badgeId } = req.params;
-    console.log('badgeId', badgeId);
-    
+    console.log("badgeId", badgeId);
+
     // Validate parameters
     if (!badgeId) {
-      return res.status(400).json({ message: 'Missing required badgeId' });
+      return res.status(400).json({ message: "Missing required badgeId" });
     }
 
     // Find the badge by ID
     const badgeItem = await Badge.findById(badgeId);
-    
+
     // If no badge is found, return an error
     if (!badgeItem) {
-      return res.status(404).json({ message: 'Badge not found' });
+      return res.status(404).json({ message: "Badge not found" });
     }
 
     // Toggle the badge stock status
@@ -797,13 +818,21 @@ export const toggleBadgeStatus = async (req, res) => {
     await badgeItem.save();
 
     // Return a success response with the updated badge info
-    res.status(200).json({ message: 'Badge stock status toggled successfully', badge: badgeItem });
+    res
+      .status(200)
+      .json({
+        message: "Badge stock status toggled successfully",
+        badge: badgeItem,
+      });
   } catch (error) {
-    console.error('Error toggling badge status:', error);
-    res.status(500).json({ message: 'An error occurred while toggling the badge stock status' });
+    console.error("Error toggling badge status:", error);
+    res
+      .status(500)
+      .json({
+        message: "An error occurred while toggling the badge stock status",
+      });
   }
 };
-
 
 export const deleteBadge = async (req, res) => {
   try {
@@ -811,7 +840,7 @@ export const deleteBadge = async (req, res) => {
 
     // Validate parameters
     if (!badgeId) {
-      return res.status(400).json({ message: 'Missing required badgeId' });
+      return res.status(400).json({ message: "Missing required badgeId" });
     }
 
     // Find and delete the badge by ID
@@ -819,40 +848,44 @@ export const deleteBadge = async (req, res) => {
 
     // If no badge is found, return an error
     if (!deletedBadge) {
-      return res.status(404).json({ message: 'Badge not found' });
+      return res.status(404).json({ message: "Badge not found" });
     }
 
     // Return a success response
-    res.status(200).json({ message: 'Badge deleted successfully' });
+    res.status(200).json({ message: "Badge deleted successfully" });
   } catch (error) {
-    console.error('Error deleting badge:', error);
-    res.status(500).json({ message: 'An error occurred while deleting the badge' });
+    console.error("Error deleting badge:", error);
+    res
+      .status(500)
+      .json({ message: "An error occurred while deleting the badge" });
   }
 };
-
-
 
 export const addBadge = async (req, res) => {
   try {
     const { name, price } = req.body;
-    const imageFile = req.files?.badgeImage; 
-    
+    const imageFile = req.files?.badgeImage;
+
     // Check if the required fields are provided
     if (!name || !price || !imageFile) {
-      return res.status(400).json({ message: "Please provide all required fields (name, price, and image)" });
+      return res
+        .status(400)
+        .json({
+          message:
+            "Please provide all required fields (name, price, and image)",
+        });
     }
 
     // Upload the image to Cloudinary
     const uploadResult = await uploadToCloudinary(imageFile.data);
-    
+
     // Create a new badge with the uploaded image data
     const newBadge = new Badge({
       name,
       price,
-      image: { 
+      image: {
         url: uploadResult,
       },
-
     });
 
     // Save the badge to the database
@@ -871,3 +904,4 @@ export const addBadge = async (req, res) => {
     });
   }
 };
+

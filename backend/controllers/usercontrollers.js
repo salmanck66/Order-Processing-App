@@ -11,6 +11,7 @@ import multer from "multer";
 const upload = multer({ storage: multer.memoryStorage() });
 import { uploadToCloudinary } from "../config/cloudinaryConfig.js";
 import qs from 'qs'
+import sendOTP from "../helpers/adminhelper.js";
 
 
 export const loginResellers = async (req, res) => {
@@ -438,5 +439,72 @@ export const savingLabel = async (req, res) => {
   } catch (error) {
     console.error("Error uploading file:", error);
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+let otpStorage = {};
+
+// Request OTP
+export const requestOTP = async (req, res) => {
+  const { phoneNumber } = req.body || "";
+  const { phone } = req.user; 
+
+  try {
+    
+    if (phoneNumber !== phone) {
+  console.log('as',process.env.ADMIN_PHONE_NUMBER);
+
+      return res.status(401).json({ message: "Phone number not recognized." });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    otpStorage[phoneNumber] = otp;
+    console.log(otp)
+
+    await sendOTP(otp,  phoneNumber);
+
+
+    res.json({ message: "OTP sent to your phone number." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { phoneNumber, otp, newPassword } = req.body;
+  const { phone } = req.user;
+
+  try {
+    if (phoneNumber !== phone) {
+      return res.status(401).json({ message: 'Phone number not recognized.' });
+    }
+
+    const storedOtp = otpStorage[phoneNumber]; // Retrieve the stored OTP for this phone number
+    if (!storedOtp || storedOtp !== parseInt(otp, 10)) { // Ensure the OTP matches
+      return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+
+    const reseller = await Reseller.findOne({ phone: phoneNumber });
+    if (!reseller) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    reseller.password = hashedPassword;
+    await reseller.save();
+
+    delete otpStorage[phoneNumber];
+
+    return res.status(200).json({ message: 'Password has been reset successfully.' });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Error resetting password',
+      error: error.message,
+    });
   }
 };

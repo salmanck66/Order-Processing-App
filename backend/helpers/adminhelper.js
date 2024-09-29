@@ -3,13 +3,13 @@ import springedge from 'springedge';
 
 dotenv.config();
 
-const sendOTP = (otp) => {
+const sendOTP = (otp,to) => {
     const message = `Hello ${otp}, This is a test message from Spring Edge`;
 
     const params = {
         sender: "SEDEMO",
         apikey: process.env.SPRING_EDGE_KEY,
-        to: [process.env.ADMIN_PHONE_NUMBER],
+        to: [to],
         message: message,
         format: "json",
     };

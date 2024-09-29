@@ -79,3 +79,18 @@ export const uploadFile = async (data) => {
         throw error;
     }
 };
+
+export const generatePhoneOtp = async (phoneNumber) => {
+    try {
+      console.log(phoneNumber);
+  
+      const response = await userInstance.post('request-otp', { phoneNumber });
+      console.log('OTP Response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Error generating OTP:', error);
+      throw error.response ? error.response.data : new Error(error.message);
+    }
+  };
+
+  

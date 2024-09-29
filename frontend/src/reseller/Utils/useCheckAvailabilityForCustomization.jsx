@@ -8,12 +8,12 @@ const useCheckAvailabilityForCustomization = (productId, customerId, selectedSiz
 
   const order = customer?.orders?.find((order) => order._id === productId);
   
-  if (order) {
+  if (order && selectedSize) {
 
-    const badgeForSize = order?.badges?.find((badge) => badge.size === selectedSize);
+    const badgeForSize = order?.badges?.find((badge) => badge?.size === selectedSize);
     const availableSizeCount = order?.orderSizes[selectedSize] || 0;
 
-    const customizationsForSize = order?.customizations?.filter((customization) => customization.size === selectedSize);
+    const customizationsForSize = order?.customizations?.filter((customization) => customization?.size === selectedSize);
     const customizationCount = customizationsForSize?.length || 0;
 
     const isSizeAvailable = customizationCount < availableSizeCount;
