@@ -1,152 +1,128 @@
 import React, { useState } from 'react';
-import { Modal, Form, Input, Button, notification, Tooltip } from 'antd';
-import { useForm, Controller } from 'react-hook-form';
-import { resetPassword } from '../../Api/PostApi';
+import { Modal, Form, Input, Button, message } from 'antd';
+import { generatePhoneOtp, resetPassword } from '../../Api/PostApi';
 
 const PasswordResetModal = ({ isVisible, onClose }) => {
-  const { control, handleSubmit, watch, formState: { errors } } = useForm();
-  const [passwordHint, setPasswordHint] = useState({
-    minLength: false,
-    hasSpecialChar: false
-  });
+  const [form] = Form.useForm();
+  const [isOtpSent, setIsOtpSent] = useState(false); // State to manage OTP status
 
-  const handlePasswordReset = async (formData) => {
-    try {
-      const response = await resetPassword(formData);
-      
-      notification.success({
-        message: 'Password Reset Successful',
-        description: 'Your password has been successfully reset. You can now log in with your new password.',
-        placement: 'topRight',
+  // Handle form submission (OTP + new password)
+  const handleOk = () => {
+    form.validateFields()
+      .then(async (values) => {
+        console.log('Form Values:', values);
+        
+        // Call the resetPassword API with form values
+        try {
+          await resetPassword(values);
+          message.success('Password reset successfully');
+          onClose();
+        } catch (error) {
+          message.error(error?.message || 'Failed to reset password');
+          console.error('Error resetting password:', error);
+        }
+      })
+      .catch((info) => {
+        console.log('Validation Failed:', info);
       });
+  };
 
-      console.log('Password reset successful:', response);
-      onClose(); // Close the modal after successful reset
-    } catch (error) {
-      notification.error({
-        message: 'Password Reset Failed',
-        description: error.response?.data?.message || 'An error occurred while trying to reset your password. Please try again.',
-        placement: 'topRight',
-      });
-
-      console.error('Password reset failed:', error);
+  // Handle "Get OTP" button click
+  const handleGetOtp = async () => {
+    const phoneNumber = form.getFieldValue('phoneNumber');
+    if (phoneNumber) {
+      try {
+        await generatePhoneOtp(phoneNumber);
+        message.success('OTP sent successfully');
+        setIsOtpSent(true); // Enable OTP input once OTP is sent
+      } catch (error) {
+        message.error(error?.message || 'Failed to send OTP');
+        console.error('Error sending OTP:', error);
+      }
+    } else {
+      form.validateFields(['phoneNumber']);
     }
   };
-
-  const newPassword = watch('newPassword');
-  const confirmPassword = watch('confirmPassword');
-
-  // Password validation rules
-  const minLengthRequirement = 8;
-  const specialCharRequirement = /[!@#$%^&*]/;
-
-  // Check password validity
-  const updatePasswordHint = (password) => {
-    setPasswordHint({
-      minLength: password?.length >= minLengthRequirement,
-      hasSpecialChar: specialCharRequirement.test(password)
-    });
-  };
-
-  // Update hints when newPassword changes
-  React.useEffect(() => {
-    updatePasswordHint(newPassword);
-  }, [newPassword]);
 
   return (
     <Modal
       title="Reset Password"
       visible={isVisible}
       onCancel={onClose}
-      footer={null}
+      onOk={handleOk}
+      okText="Submit"
+      cancelText="Cancel"
+      okButtonProps={{ disabled: !isOtpSent }} // Disable "Submit" until OTP is sent
     >
-      <Form
-        layout="vertical"
-        onFinish={handleSubmit(handlePasswordReset)}
-      >
+      <Form form={form} layout="vertical">
+        {/* Phone Number Input with inline "Get OTP" button */}
         <Form.Item
-          label="Current Password"
-          validateStatus={errors.currentPassword ? 'error' : ''}
-          help={errors.currentPassword ? errors.currentPassword.message : ''}
+          label="Phone Number"
+          name="phoneNumber"
+          rules={[{ required: true, message: 'Please enter your phone number' }]}
         >
-          <Controller
-            name="currentPassword"
-            control={control}
-            defaultValue=""
-            rules={{ required: 'Current password is required' }}
-            render={({ field }) => (
-              <Input.Password
-                {...field}
-                placeholder="Enter current password"
-              />
-            )}
-          />
+          <Input.Group compact>
+            <Form.Item
+              name="phoneNumber"
+              noStyle
+              rules={[{ required: true, message: 'Please enter your phone number' }]}
+            >
+              <Input style={{ width: '70%' }} placeholder="Enter your phone number" />
+            </Form.Item>
+            <Button style={{ width: '30%' }} type="primary" onClick={handleGetOtp}>
+              Get OTP
+            </Button>
+          </Input.Group>
         </Form.Item>
 
+        {/* OTP Input with 6-digit validation */}
         <Form.Item
+          name="otp"
+          label="OTP"
+          rules={[
+            { required: true, message: 'Please enter the OTP' },
+            {
+              pattern: /^[0-9]{6}$/, // Adjusted to match 6-digit OTP
+              message: 'OTP must be exactly 6 digits',
+            },
+          ]}
+        >
+          <Input placeholder="Enter the OTP" maxLength={6} />
+        </Form.Item>
+
+        {/* New Password Input with 8 characters & 1 special character validation */}
+        <Form.Item
+          name="newPassword"
           label="New Password"
-          validateStatus={errors.newPassword ? 'error' : ''}
-          help={errors.newPassword ? errors.newPassword.message : ''}
+          rules={[
+            { required: true, message: 'Please enter your new password' },
+            {
+              pattern: /^(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
+              message: 'Password must be at least 8 characters long and contain at least one special character',
+            },
+          ]}
         >
-          <Controller
-            name="newPassword"
-            control={control}
-            defaultValue=""
-            rules={{
-              required: 'New password is required',
-              pattern: {
-                value: /^(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/,
-                message: 'Password must be at least 8 characters long and include at least one special character'
-              }
-            }}
-            render={({ field }) => (
-              <Input.Password
-                {...field}
-                placeholder="Enter new password"
-                suffix={
-                  <Tooltip title="Password must be at least 8 characters long and include at least one special character">
-                    <i className="anticon anticon-info-circle" style={{ fontSize: 16, color: '#1890ff' }} />
-                  </Tooltip>
-                }
-              />
-            )}
-          />
-          <div style={{ color: 'gray', marginTop: '0.5rem' }} className='flex gap-4 text-red-500 '>
-            <p style={{ display: passwordHint.minLength ? 'none' : 'block' }}>
-              <i className="anticon anticon-close-circle" style={{ color: 'red' }} /> Minimum 8 characters
-            </p>
-            <p style={{ display: passwordHint.hasSpecialChar ? 'none' : 'block' }}>
-              <i className="anticon anticon-close-circle" style={{ color: 'red' }} /> At least one special character
-            </p>
-          </div>
+          <Input.Password placeholder="Enter your new password" />
         </Form.Item>
 
+        {/* Re-enter New Password Input */}
         <Form.Item
+          name="confirmPassword"
           label="Confirm New Password"
-          validateStatus={errors.confirmPassword ? 'error' : ''}
-          help={errors.confirmPassword ? errors.confirmPassword.message : ''}
+          dependencies={['newPassword']}
+          rules={[
+            { required: true, message: 'Please confirm your new password' },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue('newPassword') === value) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(new Error('The two passwords do not match'));
+              },
+            }),
+          ]}
         >
-          <Controller
-            name="confirmPassword"
-            control={control}
-            defaultValue=""
-            rules={{
-              required: 'Please confirm your new password',
-              validate: value => value === newPassword || 'Passwords do not match'
-            }}
-            render={({ field }) => (
-              <Input.Password
-                {...field}
-                placeholder="Confirm new password"
-              />
-            )}
-          />
-        </Form.Item>
-
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            Reset Password
-          </Button>
+          <Input.Password placeholder="Re-enter your new password" />
         </Form.Item>
       </Form>
     </Modal>

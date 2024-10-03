@@ -4,6 +4,7 @@ import { Popconfirm, Button, notification } from 'antd'; // Import notification 
 import PasswordResetModal from '../Specific/Account/PasswordResetModal';
 import { logout } from '../Api/getApi'; // Ensure this is the correct path
 import { useNavigate } from 'react-router-dom';
+import OtpGenerate from './OtpGenerate';
 
 export const Profile = ({ profile }) => {
     const navigate = useNavigate()
@@ -84,7 +85,6 @@ export const Profile = ({ profile }) => {
           </Popconfirm>
         </div>
       </div>
-      
       <PasswordResetModal isVisible={isModalVisible} onClose={closeModal} />
     </div>
   );

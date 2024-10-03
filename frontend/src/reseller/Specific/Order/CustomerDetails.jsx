@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import  { useState, useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Table, Button, Popconfirm, Modal, message } from 'antd';
@@ -164,7 +164,7 @@ const CustomerDetails = () => {
 
     return (
         <div className='p-1 md:p-10 flex flex-col gap-10'>
-            <div className='flex h-full items-center'>
+            <div className='flex h-full items-center justify-between'>
                 <LuMoveLeft
                     className='text-2xl hover:scale-105 cursor-pointer'
                     onClick={handleGoBack}
