@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Table, Pagination, Spin, Empty, DatePicker } from 'antd';
 import 'antd/dist/reset.css'; // Import Ant Design styles
-import Information from './information';
+import Information from './Information';
 import { getCustomersByDate } from '../Api/getApi';
 
 const ListCustomers = ({ customers, setCustomers, loading, resetCustomers }) => {

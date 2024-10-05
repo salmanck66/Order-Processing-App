@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tooltip } from 'antd'; // Import Tooltip component from Ant Design
+import { Tooltip } from 'antd';
 import { PiInfoLight } from "react-icons/pi";
 
 const Information = ({ tooltipMessage }) => {

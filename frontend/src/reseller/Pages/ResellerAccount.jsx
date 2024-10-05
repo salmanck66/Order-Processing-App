@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Profile } from '../Components/Profile';
-import ListCustomers from '../Components/listCustomers';
+import ListCustomers from '../Components/ListCustomers';
 import { fetchProfile } from '../Api/getApi';
 import { Spin, Alert } from 'antd'; // Import Ant Design components for UX improvements
 import 'antd/dist/reset.css'; // Import Ant Design styles
