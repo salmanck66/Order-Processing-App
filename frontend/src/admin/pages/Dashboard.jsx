@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import OrderLists from '../specific/OrderLists';
 import OrderSummary from '../specific/OrderSummery';
 import { dashboard } from '../Api/getApi';
-import Statistics from '../specific/dashboard/statistics';
+import Statistics from '../specific/dashboard/Statistics';
 import Graph from '../specific/dashboard/Graph';
 
 const Dashboard = () => {
