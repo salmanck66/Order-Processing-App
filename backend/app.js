@@ -13,7 +13,7 @@ const app = express();
 
 
 app.use(fileUpload());
-console.log(process.env.FRONTEND_URL);
+console.log("url",process.env.FRONTEND_URL);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser())
