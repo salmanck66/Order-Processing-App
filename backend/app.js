@@ -18,7 +18,7 @@ console.log(process.env.FRONTEND_URL);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser())
 app.use(cors({
-  origin: 'https://order-processing-app-tffa.vercel.app',
+  origin: 'https://order-processing-app-tffa.vercel.app/',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
@@ -27,7 +27,7 @@ app.use(cors({
   
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
-      res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL);
+      res.header('Access-Control-Allow-Origin', "https://order-processing-app-tffa.vercel.app/");
       res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
       res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       res.header('Access-Control-Allow-Credentials', 'true');
