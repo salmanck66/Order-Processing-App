@@ -14,7 +14,7 @@ dotenv.config();
 const app = express();
 
 app.use(fileUpload());
-console.log("Frontend URL:", process.env.FRONTEND_URL);
+console.log("Frontend URL: is", process.env.FRONTEND_URL);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
