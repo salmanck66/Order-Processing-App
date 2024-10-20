@@ -15,7 +15,7 @@ import dotenv from 'dotenv';
 dotenv.config(); // Ensure .env is loaded before using process.env variables
 
 // Define FRONTEND_URL
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://order-processing-app-z5s8.vercel.app';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://order-processing-app-tffa.vercel.app/';
 
 // Middleware setup
 app.use(fileUpload());
