@@ -18,24 +18,19 @@ console.log("url",process.env.FRONTEND_URL);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser())
 app.use(cors({
-  origin: 'https://order-processing-app-tffa.vercel.app/',
+  origin: 'https://order-processing-app-tffa.vercel.app',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
 }));
-
   
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
-<<<<<<< HEAD
-      res.header('Access-Control-Allow-Origin', "https://order-processing-app-tffa.vercel.app/");
-=======
-      res.header('Access-Control-Allow-Origin', 'https://order-processing-app-tffa.vercel.app');
->>>>>>> ad2335957dadff510e63326c737e9b84d97ef39e
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      res.header('Access-Control-Allow-Credentials', 'true');
-      return res.status(204).end(); 
+    res.header('Access-Control-Allow-Origin', 'https://order-processing-app-tffa.vercel.app');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    return res.status(204).end(); 
   }
   next();
 });
